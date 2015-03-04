@@ -26,5 +26,6 @@ void main()
 	NormalWorldSpace = normalize( vec3( vec4( normalViewSpace, 0 ) * ciViewMatrix ) );
 
 	Color = iColor;
+	
 	gl_Position = ciModelViewProjection * mPosition;
 }

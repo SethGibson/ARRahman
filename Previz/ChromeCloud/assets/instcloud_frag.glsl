@@ -14,7 +14,7 @@ void main( void )
 	vec3 reflectedEyeWorldSpace = reflect( EyeDirWorldSpace, normalize(NormalWorldSpace) );
 
 	vec4 cEnvColor = texture( uCubeMapTex, reflectedEyeWorldSpace );
-	//vec4 cEnvColor = texture( uCubeMapTex, NormalWorldSpace );
 	vec4 cRgbColor = vec4(Color,1);
-	oColor = cRgbColor + (cEnvColor*0.95);
+	
+	oColor = vec4(Color*3,1.0)+(cEnvColor*0.65);
 }

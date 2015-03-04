@@ -172,12 +172,12 @@ void ChromeCloudApp::setupCloudFBO()
 	}
 
 
-	mTexScroll = gl::Texture2d::create(loadImage(loadAsset("cloud_map.png")), gl::Texture2d::Format().wrap(GL_REPEAT));
+	mTexScroll = gl::Texture2d::create(loadImage(loadAsset("cloud_map.png")), gl::Texture2d::Format().wrap(GL_REPEAT).internalFormat(GL_RGBA));
 	mScrollShader->uniform("mTexColor", 0);
 	mScrollShader->uniform("mTexMask", 1);
 
 	gl::Fbo::Format cFboFormat;
-	gl::Texture2d::Format cTexFormat = gl::Texture2d::Format().internalFormat(GL_RGBA);
+	gl::Texture2d::Format cTexFormat = gl::Texture2d::Format().internalFormat(GL_RGBA8);
 	
 	gl::Texture2dRef cCloudColor = gl::Texture2d::create(1280, 720, cTexFormat);
 	gl::Texture2dRef cScrollColor = gl::Texture2d::create(1280, 720, cTexFormat);
@@ -206,22 +206,24 @@ void ChromeCloudApp::renderCloudFBO()
 {
 	mCloudFbo->bindFramebuffer();
 	gl::ScopedViewport cCloudVP(vec2(0), mCloudFbo->getSize());
-
-	//gl states
 	gl::setMatrices(mMayaCam.getCamera());
 	gl::clear(ColorA::zero());
+	gl::color(ColorA::white());
 	mCloudBatch->drawInstanced(mPositions.size());
 	mCloudFbo->unbindFramebuffer();
 
 	mScrollFbo->bindFramebuffer();
+	gl::enableAlphaBlending();
 	gl::setMatricesWindow(getWindowSize());
 	gl::clear(ColorA::zero());
+	gl::color(ColorA::white());
 	mCloudFbo->bindTexture(0);
 	mTexScroll->bind(1);
 	mScrollShader->bind();
 	gl::drawSolidRect(Rectf({ vec2(0), mScrollFbo->getSize() }));
 	mCloudFbo->unbindTexture();
 	mTexScroll->unbind();
+	gl::disableAlphaBlending();
 	mScrollFbo->unbindFramebuffer();
 }
 
@@ -263,6 +265,8 @@ void ChromeCloudApp::update()
 void ChromeCloudApp::draw()
 {
 	gl::clear(Color(0, 0, 0));
+	gl::enableAlphaBlending();
+	gl::color(Color::white());
 	gl::setMatrices(mMayaCam.getCamera());
 
 	gl::pushMatrices();
@@ -272,7 +276,7 @@ void ChromeCloudApp::draw()
 	gl::popMatrices();
 
 	gl::setMatricesWindow(getWindowSize());
-	gl::enableAlphaBlending();
+	
 	gl::draw(mScrollFbo->getColorTexture(), vec2(0));
 	gl::disableAlphaBlending();
 }
