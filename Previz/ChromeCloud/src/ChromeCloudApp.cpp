@@ -44,12 +44,14 @@ private:
 	void setupMeshes();
 	void setupFBOs();
 
+	void setupCloudFBO();
+	void renderCloudFBO();
+
 	//Skybox
 	geom::Cube				mSkyBox;
 	gl::BatchRef			mSkyBoxBatch;
 	gl::TextureCubeMapRef	mTexCube;
 	gl::GlslProgRef			mSkyBoxShader;
-	gl::FboRef				mSkyboxFbo;
 
 	//PointCloud
 	geom::Sphere			mCloudCube;
@@ -57,8 +59,13 @@ private:
 	geom::BufferLayout		mCloudAttribs;
 	gl::VboRef				mCloudData;
 	gl::VboMeshRef			mCloudMesh;
-	gl::GlslProgRef			mCloudShader;
-	gl::FboRef				mCloudFbo;
+	gl::GlslProgRef			mCloudShader, mScrollShader;
+	gl::FboRef				mCloudFbo, mScrollFbo;
+	gl::Texture2dRef		mTexCloudAlpha;
+	gl::Texture2dRef		mTexScroll;
+
+	//Final
+	gl::GlslProgRef			mCompShader;
 
 	CameraPersp				mCamera;
 	MayaCamUI				mMayaCam;
@@ -79,7 +86,7 @@ void ChromeCloudApp::setup()
 
 	mCamera.setPerspective(45.0f, getWindowAspectRatio(), 0.1, 2000.0f);
 	mCamera.lookAt(vec3(0, 0, -3), vec3(0), vec3(0, 1, 0));
-	mCamera.setCenterOfInterestPoint(vec3(0));
+	mCamera.setCenterOfInterestPoint(vec3(0,0,1));
 	mMayaCam.setCurrentCam(mCamera);
 
 	gl::enableDepthRead();
@@ -148,7 +155,41 @@ void ChromeCloudApp::setupMeshes()
 
 void ChromeCloudApp::setupFBOs()
 {
-	mCloudFbo = gl::Fbo::create(1280, 720, true);
+	setupCloudFBO();
+
+}
+
+void ChromeCloudApp::setupCloudFBO()
+{
+
+	try
+	{
+		mScrollShader = gl::GlslProg::create(loadAsset("vert_fbo.glsl"), loadAsset("scroll_fbo.glsl"));
+	}
+	catch (const gl::GlslProgExc &e)
+	{
+		console() << e.what() << endl;
+	}
+
+
+	mTexScroll = gl::Texture2d::create(loadImage(loadAsset("cloud_map.png")), gl::Texture2d::Format().wrap(GL_REPEAT));
+	mScrollShader->uniform("mTexColor", 0);
+	mScrollShader->uniform("mTexMask", 1);
+
+	gl::Fbo::Format cFboFormat;
+	gl::Texture2d::Format cTexFormat = gl::Texture2d::Format().internalFormat(GL_RGBA);
+	
+	gl::Texture2dRef cCloudColor = gl::Texture2d::create(1280, 720, cTexFormat);
+	gl::Texture2dRef cScrollColor = gl::Texture2d::create(1280, 720, cTexFormat);
+	
+	cFboFormat.attachment(GL_COLOR_ATTACHMENT0, cCloudColor);
+	cFboFormat.depthTexture();
+	mCloudFbo = gl::Fbo::create(1280, 720, cFboFormat);
+	mTexCloudAlpha = gl::Texture2d::create(1280, 720, cTexFormat);
+
+	cFboFormat.attachment(GL_COLOR_ATTACHMENT0, cScrollColor);
+	cFboFormat.depthTexture();
+	mScrollFbo = gl::Fbo::create(1280, 720, cFboFormat);
 }
 
 void ChromeCloudApp::mouseDown( MouseEvent event )
@@ -159,6 +200,29 @@ void ChromeCloudApp::mouseDown( MouseEvent event )
 void ChromeCloudApp::mouseDrag(MouseEvent event)
 {
 	mMayaCam.mouseDrag(event.getPos(), event.isLeftDown(), false, event.isRightDown());
+}
+
+void ChromeCloudApp::renderCloudFBO()
+{
+	mCloudFbo->bindFramebuffer();
+	gl::ScopedViewport cCloudVP(vec2(0), mCloudFbo->getSize());
+
+	//gl states
+	gl::setMatrices(mMayaCam.getCamera());
+	gl::clear(ColorA::zero());
+	mCloudBatch->drawInstanced(mPositions.size());
+	mCloudFbo->unbindFramebuffer();
+
+	mScrollFbo->bindFramebuffer();
+	gl::setMatricesWindow(getWindowSize());
+	gl::clear(ColorA::zero());
+	mCloudFbo->bindTexture(0);
+	mTexScroll->bind(1);
+	mScrollShader->bind();
+	gl::drawSolidRect(Rectf({ vec2(0), mScrollFbo->getSize() }));
+	mCloudFbo->unbindTexture();
+	mTexScroll->unbind();
+	mScrollFbo->unbindFramebuffer();
 }
 
 void ChromeCloudApp::update()
@@ -193,20 +257,24 @@ void ChromeCloudApp::update()
 	mCloudMesh->appendVbo(mCloudAttribs, mCloudData);
 	mCloudBatch->replaceVboMesh(mCloudMesh);
 
-
+	renderCloudFBO();
 }
 
 void ChromeCloudApp::draw()
 {
-	gl::clear( Color( 0, 0, 0 ) ); 
+	gl::clear(Color(0, 0, 0));
 	gl::setMatrices(mMayaCam.getCamera());
-	mCloudBatch->drawInstanced(mPositions.size());
-	
+
 	gl::pushMatrices();
 	gl::scale(500, 500, 500);
 	mTexCube->bind();
 	mSkyBoxBatch->draw();
 	gl::popMatrices();
+
+	gl::setMatricesWindow(getWindowSize());
+	gl::enableAlphaBlending();
+	gl::draw(mScrollFbo->getColorTexture(), vec2(0));
+	gl::disableAlphaBlending();
 }
 
 void ChromeCloudApp::exit()

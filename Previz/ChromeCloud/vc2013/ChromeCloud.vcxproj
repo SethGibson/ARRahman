@@ -115,10 +115,15 @@
     <ClInclude Include="..\include\Resources.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\assets\env_map.frag" />
+    <None Include="..\assets\env_map.vert" />
+    <None Include="..\assets\final_comp_frag.glsl" />
     <None Include="..\assets\instcloud_frag.glsl" />
     <None Include="..\assets\instcloud_vert.glsl" />
+    <None Include="..\assets\scroll_fbo.glsl" />
     <None Include="..\assets\sky_box.frag" />
     <None Include="..\assets\sky_box.vert" />
+    <None Include="..\assets\vert_fbo.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

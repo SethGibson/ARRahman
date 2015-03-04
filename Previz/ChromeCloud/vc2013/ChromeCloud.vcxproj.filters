@@ -63,5 +63,20 @@
     <None Include="..\assets\instcloud_frag.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
+    <None Include="..\assets\vert_fbo.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\scroll_fbo.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\final_comp_frag.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\env_map.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\env_map.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
