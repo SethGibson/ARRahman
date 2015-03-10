@@ -2,6 +2,9 @@
 
 uniform samplerCube uCubeMapTex;
 
+uniform float mColorAmt;
+uniform float mReflAmt;
+
 in vec3	NormalWorldSpace;
 in vec3 EyeDirWorldSpace;
 in vec3	Color;
@@ -16,5 +19,5 @@ void main( void )
 	vec4 cEnvColor = texture( uCubeMapTex, reflectedEyeWorldSpace );
 	vec4 cRgbColor = vec4(Color,1);
 	
-	oColor = vec4(Color*3,1.0)+(cEnvColor*0.65);
+	oColor = vec4(Color*mColorAmt,1.0)+(cEnvColor*mReflAmt);
 }

@@ -14,6 +14,7 @@
 #include "cinder/Camera.h"
 #include "cinder/MayaCamUI.h"
 #include "cinder/ImageIo.h"
+#include "cinder/params/Params.h"
 #include "CiDSAPI.h"
 
 using namespace ci;
@@ -40,6 +41,7 @@ public:
 	};
 
 private:
+	void setupGUI();
 	void setupDSAPI();
 	void setupMeshes();
 	void setupFBOs();
@@ -63,23 +65,29 @@ private:
 	gl::FboRef				mCloudFbo, mScrollFbo;
 	gl::Texture2dRef		mTexCloudAlpha;
 	gl::Texture2dRef		mTexScroll;
-
-	//Final
-	gl::GlslProgRef			mCompShader;
+	gl::GlslProgRef			mBlurShader;
 
 	CameraPersp				mCamera;
 	MayaCamUI				mMayaCam;
 	vector<CloudPoint>		mPositions;
 
-
 	CinderDSRef				mCinderDS;
 	ivec2					mDepthDims;
+
+	// GUI
+	float					mColorScale,
+							mReflScale,
+							mCloudSpeed,
+							mCloudNoise;
+
+	params::InterfaceGlRef	mGUI;
 };
 
 void ChromeCloudApp::setup()
 {
 	getWindow()->setSize(1280, 720);
 
+	setupGUI();
 	setupDSAPI();
 	setupMeshes();
 	setupFBOs();
@@ -91,6 +99,19 @@ void ChromeCloudApp::setup()
 
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
+}
+
+void ChromeCloudApp::setupGUI()
+{
+	mColorScale = 1.5f;
+	mReflScale = 0.65f;
+	mCloudSpeed = 0.15f;
+	mCloudNoise = 0.015;
+	mGUI = params::InterfaceGl::create("Params", vec2(300, 100));
+	mGUI->addParam("Color Amt", &mColorScale).min(0.1f).max(3.0f).step(0.1f);
+	mGUI->addParam("Env Amt", &mReflScale).min(0.1f).max(3.0f).step(0.1f);
+	mGUI->addParam("Cloud Spd", &mCloudSpeed).min(0.1f).max(5.0f).step(0.1f);
+	mGUI->addParam("Noise", &mCloudNoise).min(0.001f).max(1.0f).step(0.005f);
 }
 
 void ChromeCloudApp::setupDSAPI()
@@ -209,7 +230,10 @@ void ChromeCloudApp::renderCloudFBO()
 	gl::setMatrices(mMayaCam.getCamera());
 	gl::clear(ColorA::zero());
 	gl::color(ColorA::white());
+	mCloudBatch->getGlslProg()->uniform("mColorAmt", mColorScale);
+	mCloudBatch->getGlslProg()->uniform("mReflAmt", mReflScale);
 	mCloudBatch->drawInstanced(mPositions.size());
+
 	mCloudFbo->unbindFramebuffer();
 
 	mScrollFbo->bindFramebuffer();
@@ -220,6 +244,8 @@ void ChromeCloudApp::renderCloudFBO()
 	mCloudFbo->bindTexture(0);
 	mTexScroll->bind(1);
 	mScrollShader->bind();
+	mScrollShader->uniform("mCloudSpeed", mCloudSpeed);
+	mScrollShader->uniform("mCloudNoise", mCloudNoise);
 	gl::drawSolidRect(Rectf({ vec2(0), mScrollFbo->getSize() }));
 	mCloudFbo->unbindTexture();
 	mTexScroll->unbind();
@@ -279,6 +305,8 @@ void ChromeCloudApp::draw()
 	
 	gl::draw(mScrollFbo->getColorTexture(), vec2(0));
 	gl::disableAlphaBlending();
+
+	mGUI->draw();
 }
 
 void ChromeCloudApp::exit()
@@ -286,4 +314,4 @@ void ChromeCloudApp::exit()
 	mCinderDS->stop();
 }
 
-CINDER_APP_NATIVE( ChromeCloudApp, RendererGl )
+CINDER_APP_NATIVE(ChromeCloudApp, RendererGl{RendererGl::Options().msaa(0)})

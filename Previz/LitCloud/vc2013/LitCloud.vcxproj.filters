@@ -14,23 +14,20 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
     <Filter Include="Source Files\blocks">
-      <UniqueIdentifier>{0e9669ab-22f8-4219-abdd-c429e295e5ca}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\shaders">
-      <UniqueIdentifier>{52bab44c-ab63-4cd1-87e0-612dc3470a46}</UniqueIdentifier>
+      <UniqueIdentifier>{5bf3efc0-34d2-430a-a5bb-e00dd660e87e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\blocks\Cinder-DSAPI">
-      <UniqueIdentifier>{63bf0575-4f46-4214-b970-238233bf85ec}</UniqueIdentifier>
+      <UniqueIdentifier>{736ab10b-16e8-4330-8302-85c2f29507ee}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\blocks\Cinder-glTF">
-      <UniqueIdentifier>{ad3c7db5-2cdc-46b0-aea9-2bb96d6fe38a}</UniqueIdentifier>
+    <Filter Include="Source Files\shaders">
+      <UniqueIdentifier>{62ecd46a-9501-467b-aa61-92426a052993}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\ChromeCloudApp.cpp">
+    <ClCompile Include="..\src\LitCloudApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ChromeCloudApp.cpp">
+    <ClCompile Include="..\src\LitCloudApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClInclude Include="..\include\Resources.h">
@@ -54,31 +51,10 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\assets\sky_box.frag">
+    <None Include="..\assets\diff_spec.frag">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\sky_box.vert">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="..\assets\instcloud_vert.glsl">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="..\assets\instcloud_frag.glsl">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="..\assets\vert_fbo.glsl">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="..\assets\scroll_fbo.glsl">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="..\assets\final_comp_frag.glsl">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="..\assets\env_map.frag">
-      <Filter>Source Files\shaders</Filter>
-    </None>
-    <None Include="..\assets\env_map.vert">
+    <None Include="..\assets\diff_spec.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>
