@@ -136,7 +136,7 @@ void LitCloudApp::setupMeshes()
 		}
 	}
 
-	mCloudCube = geom::Sphere().radius(0.015f).subdivisions(8);
+	mCloudCube = geom::Sphere().radius(0.02f).subdivisions(8);
 	mCloudMesh = gl::VboMesh::create(mCloudCube);
 
 	mCloudData = gl::Vbo::create(GL_ARRAY_BUFFER, mPositions, GL_DYNAMIC_DRAW);
