@@ -57,5 +57,17 @@
     <None Include="..\assets\diff_spec.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
+    <None Include="..\assets\passthru.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\plane.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\sky_box.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\sky_box.vert">
+      <Filter>Source Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

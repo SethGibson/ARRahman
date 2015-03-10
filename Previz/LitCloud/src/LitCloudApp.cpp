@@ -51,11 +51,17 @@ private:
 	gl::VboMeshRef			mCloudMesh;
 	gl::GlslProgRef			mCloudShader;
 
+	//Skybox
+	gl::BatchRef			mSkyBatch;
+	gl::TextureCubeMapRef	mSkyTexCube;
+	gl::GlslProgRef			mSkyShader;
+
 	//Lighting
 	Color					mLightColor;
 	float					mAmbientScale,
 							mSpecularScale,
-							mSpecularPower;
+							mSpecularPower,
+							mEnvScale;
 
 	CameraPersp				mCamera;
 	MayaCamUI				mMayaCam;
@@ -83,14 +89,16 @@ void LitCloudApp::setup()
 
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
+	gl::enableAlphaBlending();
 }
 
 void LitCloudApp::setupGUI()
 {
 	mColorScale = 1.5f;
-	mAmbientScale = 1.0f;
-	mSpecularScale = 1.0f;
-	mSpecularPower = 32.0f;
+	mAmbientScale = 0.8f;
+	mSpecularScale = 2.0f;
+	mSpecularPower = 4.0f;
+	mEnvScale = 1.0f;
 	mLightColor = Color::white();
 
 	mGUI = params::InterfaceGl::create("Params", vec2(300, 300));
@@ -100,6 +108,7 @@ void LitCloudApp::setupGUI()
 	mGUI->addParam("Ambient Scale", &mAmbientScale).min(0.1f).max(1.0f).step(0.1f);
 	mGUI->addParam("Specular Scale", &mSpecularScale).min(0.1f).max(3.0f).step(0.1f);
 	mGUI->addParam("Specular Power", &mSpecularPower).min(4.0f).max(128.0f).step(1.0f);
+	mGUI->addParam("Reflect Scale", &mEnvScale).min(0.1f).max(3.0f).step(0.1f);
 }
 
 void LitCloudApp::setupDSAPI()
@@ -119,6 +128,7 @@ void LitCloudApp::setupMeshes()
 	try
 	{
 		mCloudShader = gl::GlslProg::create(loadAsset("diff_spec.vert"), loadAsset("diff_spec.frag"));
+		mSkyShader = gl::GlslProg::create(loadAsset("sky_box.vert"), loadAsset("sky_box.frag"));
 	}
 	catch (const gl::GlslProgExc &e)
 	{
@@ -136,7 +146,11 @@ void LitCloudApp::setupMeshes()
 		}
 	}
 
-	mCloudCube = geom::Sphere().radius(0.02f).subdivisions(8);
+	mSkyTexCube = gl::TextureCubeMap::create(loadImage(loadAsset("env_map.jpg")), gl::TextureCubeMap::Format().mipmap());
+	mSkyBatch = gl::Batch::create(geom::Cube(), mSkyShader);
+	mSkyBatch->getGlslProg()->uniform("uCubeMapTex", 0);
+	
+	mCloudCube = geom::Sphere().radius(0.0125f).subdivisions(8);
 	mCloudMesh = gl::VboMesh::create(mCloudCube);
 
 	mCloudData = gl::Vbo::create(GL_ARRAY_BUFFER, mPositions, GL_DYNAMIC_DRAW);
@@ -145,12 +159,14 @@ void LitCloudApp::setupMeshes()
 
 	mCloudMesh->appendVbo(mCloudAttribs, mCloudData);
 	mCloudBatch = gl::Batch::create(mCloudMesh, mCloudShader, { { geom::CUSTOM_0, "iPosition" }, { geom::CUSTOM_1, "iColor" } });
+	mCloudBatch->getGlslProg()->uniform("uCubeMapTex", 0);
 	mCloudBatch->getGlslProg()->uniform("ViewDirection", mMayaCam.getCamera().getViewDirection());
 	mCloudBatch->getGlslProg()->uniform("LightColor", mLightColor);
 	mCloudBatch->getGlslProg()->uniform("LightPosition", mMayaCam.getCamera().getEyePoint());
 	mCloudBatch->getGlslProg()->uniform("SpecularScale", mSpecularScale);
 	mCloudBatch->getGlslProg()->uniform("SpecularPower", mSpecularPower);
 	mCloudBatch->getGlslProg()->uniform("AmbientScale", mAmbientScale);
+	mCloudBatch->getGlslProg()->uniform("EnvScale", mEnvScale);
 }
 
 void LitCloudApp::mouseDown(MouseEvent event)
@@ -184,7 +200,7 @@ void LitCloudApp::update()
 					float cz = lmap<float>(cVal, 100.0f, 1000.0f, -8.f, 8.f);
 
 					Color cColor = mCinderDS->getDepthSpaceColor(vec3(cIter.x(), cIter.y(), cVal));
-					mPositions.push_back(CloudPoint(vec3(cx, cy, cz), vec4(cColor.r, cColor.g, cColor.b, 1.0)));
+					mPositions.push_back(CloudPoint(vec3(cx, cy, cz), vec4(cColor.r, cColor.g, cColor.b, 1)));
 				}
 			}
 		}
@@ -200,13 +216,23 @@ void LitCloudApp::draw()
 {
 	gl::clear(Color(0.1f, 0.15f, 0.25f));
 	gl::setMatrices(mMayaCam.getCamera());
+
+	mSkyTexCube->bind();
 	mCloudBatch->getGlslProg()->uniform("ViewDirection", mMayaCam.getCamera().getViewDirection());
 	mCloudBatch->getGlslProg()->uniform("LightColor", mLightColor);
 	mCloudBatch->getGlslProg()->uniform("LightPosition", mMayaCam.getCamera().getEyePoint());
 	mCloudBatch->getGlslProg()->uniform("SpecularScale", mSpecularScale);
 	mCloudBatch->getGlslProg()->uniform("SpecularPower", mSpecularPower);
 	mCloudBatch->getGlslProg()->uniform("AmbientScale", mAmbientScale);
+	mCloudBatch->getGlslProg()->uniform("EnvScale", mEnvScale);
 	mCloudBatch->drawInstanced(mPositions.size());
+	
+	gl::pushMatrices();
+	gl::scale(500, 500, 500);
+	mSkyBatch->draw();
+	gl::popMatrices();
+	mSkyTexCube->unbind();
+
 	gl::setMatricesWindow(getWindowSize());
 	mGUI->draw();
 }

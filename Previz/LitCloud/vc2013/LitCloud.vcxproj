@@ -204,6 +204,10 @@
   <ItemGroup>
     <None Include="..\assets\diff_spec.frag" />
     <None Include="..\assets\diff_spec.vert" />
+    <None Include="..\assets\passthru.vert" />
+    <None Include="..\assets\plane.frag" />
+    <None Include="..\assets\sky_box.frag" />
+    <None Include="..\assets\sky_box.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
