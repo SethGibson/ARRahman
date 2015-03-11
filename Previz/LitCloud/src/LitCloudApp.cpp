@@ -4,7 +4,7 @@
 #pragma comment(lib, "DSAPI.lib")
 #endif
 
-#include "cinder/app/AppNative.h"
+#include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Batch.h"
@@ -21,7 +21,7 @@ using namespace ci::app;
 using namespace std;
 using namespace CinderDS;
 
-class LitCloudApp : public AppNative
+class LitCloudApp : public App
 {
 public:
 	void setup() override;
@@ -135,7 +135,7 @@ void LitCloudApp::setupDSAPI()
 	mDepthDims = mCinderDS->getDepthSize();
 	mCinderDS->start();
 
-	getSignalShutdown().connect(std::bind(&LitCloudApp::exit, this));
+	getSignalCleanup().connect(std::bind(&LitCloudApp::exit, this));
 }
 
 void LitCloudApp::setupMeshes()
@@ -310,4 +310,4 @@ void LitCloudApp::exit()
 	mCinderDS->stop();
 }
 
-CINDER_APP_NATIVE(LitCloudApp, RendererGl{ RendererGl::Options().msaa(0) })
+CINDER_APP(LitCloudApp, RendererGl)
