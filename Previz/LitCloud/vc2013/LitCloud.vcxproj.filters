@@ -69,5 +69,8 @@
     <None Include="..\assets\sky_box.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
+    <None Include="..\assets\fsfx_displace.frag">
+      <Filter>Source Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

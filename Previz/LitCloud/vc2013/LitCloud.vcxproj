@@ -204,6 +204,7 @@
   <ItemGroup>
     <None Include="..\assets\diff_spec.frag" />
     <None Include="..\assets\diff_spec.vert" />
+    <None Include="..\assets\fsfx_displace.frag" />
     <None Include="..\assets\passthru.vert" />
     <None Include="..\assets\plane.frag" />
     <None Include="..\assets\sky_box.frag" />
