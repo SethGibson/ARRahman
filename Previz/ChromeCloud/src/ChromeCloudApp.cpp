@@ -4,7 +4,7 @@
 #pragma comment(lib, "DSAPI32.lib")
 #endif
 
-#include "cinder/app/AppNative.h"
+#include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Batch.h"
@@ -22,7 +22,7 @@ using namespace ci::app;
 using namespace std;
 using namespace CinderDS;
 
-class ChromeCloudApp : public AppNative
+class ChromeCloudApp : public App
 {
 public:
 	void setup() override;
@@ -123,7 +123,7 @@ void ChromeCloudApp::setupDSAPI()
 	mDepthDims = mCinderDS->getDepthSize();
 	mCinderDS->start();
 
-	getSignalShutdown().connect(std::bind(&ChromeCloudApp::exit, this));
+	getSignalCleanup().connect(std::bind(&ChromeCloudApp::exit, this));
 }
 
 void ChromeCloudApp::setupMeshes()
@@ -176,8 +176,7 @@ void ChromeCloudApp::setupMeshes()
 
 void ChromeCloudApp::setupFBOs()
 {
-	setupCloudFBO();
-
+	setupCloudFBO();	//This is redundant, sorry.
 }
 
 void ChromeCloudApp::setupCloudFBO()
@@ -193,21 +192,32 @@ void ChromeCloudApp::setupCloudFBO()
 	}
 
 
-	mTexScroll = gl::Texture2d::create(loadImage(loadAsset("cloud_map.png")), gl::Texture2d::Format().wrap(GL_REPEAT).internalFormat(GL_RGBA));
+	mTexScroll = gl::Texture2d::create(loadImage(loadAsset("rain_test.png")), gl::Texture2d::Format().wrap(GL_REPEAT).internalFormat(GL_RGBA));
 	mScrollShader->uniform("mTexColor", 0);
 	mScrollShader->uniform("mTexMask", 1);
 
+	//FBO Format tells Cinder what settings we want to use for our FBO,
+	//in this case we're setting the texture format to have an alpha channel
+	//since we want to do some blending
 	gl::Fbo::Format cFboFormat;
 	gl::Texture2d::Format cTexFormat = gl::Texture2d::Format().internalFormat(GL_RGBA8);
 	
+	//Now we create the textures that all the frame buffer operations write into
+	//NOTE: This is optional, if you just construct an Fbo, it will by default
+	//give you a color texture at the specified size
 	gl::Texture2dRef cCloudColor = gl::Texture2d::create(1280, 720, cTexFormat);
 	gl::Texture2dRef cScrollColor = gl::Texture2d::create(1280, 720, cTexFormat);
 	
+	//Now we add a texture to our FBO format object so the FBO
+	//knows which texture to use for writing.  Again, this is optional
 	cFboFormat.attachment(GL_COLOR_ATTACHMENT0, cCloudColor);
 	cFboFormat.depthTexture();
+
+	//Now we create the First FBO and pass in the format, and thus the texture we created
 	mCloudFbo = gl::Fbo::create(1280, 720, cFboFormat);
 	mTexCloudAlpha = gl::Texture2d::create(1280, 720, cTexFormat);
 
+	//We change the texture in our format to the second texture and create the second fbo
 	cFboFormat.attachment(GL_COLOR_ATTACHMENT0, cScrollColor);
 	cFboFormat.depthTexture();
 	mScrollFbo = gl::Fbo::create(1280, 720, cFboFormat);
@@ -225,6 +235,8 @@ void ChromeCloudApp::mouseDrag(MouseEvent event)
 
 void ChromeCloudApp::renderCloudFBO()
 {
+	//Fbo::bindFrameBuffer tells Cinder/OpenGL that instead of drawing
+	//to the screen, we want to draw to the specified frame buffer
 	mCloudFbo->bindFramebuffer();
 	gl::ScopedViewport cCloudVP(vec2(0), mCloudFbo->getSize());
 	gl::setMatrices(mMayaCam.getCamera());
@@ -233,9 +245,24 @@ void ChromeCloudApp::renderCloudFBO()
 	mCloudBatch->getGlslProg()->uniform("mColorAmt", mColorScale);
 	mCloudBatch->getGlslProg()->uniform("mReflAmt", mReflScale);
 	mCloudBatch->drawInstanced(mPositions.size());
-
 	mCloudFbo->unbindFramebuffer();
+	//Be sure to call Fbo::unbindFramebuffer() after you're done
+	//otherwise you'll keep drawing to the same fbo and won't
+	//be able to access the texture
 
+	//Ok, this next section is a bit involved, but stay with me:
+	//	So we have a texture from the point cloud stored in our first
+	//	FBO.  Now we want to generate ANOTHER texture into the second
+	//	FBO that uses the texture from the first FBO as input.
+	//	Recall that when you want to draw a texture to the screen
+	//	in Cinder, you call either gl::draw or you bind a shader and
+	//  call gl::drawSolidRect to draw a rectangle the size of the screen
+	//  with the texture on it.  So, we're going to do the same thing here
+	//	but instead of drawing the texture on a rectangle to the screen,
+	//  we're drawing it into the second FBO, which effectively takes
+	//  the first texture (the point cloud), the second texture (the mask)
+	//  and gives us a THIRD texture that is the result of the operation
+	//  on both of those textures.
 	mScrollFbo->bindFramebuffer();
 	gl::enableAlphaBlending();
 	gl::setMatricesWindow(getWindowSize());
@@ -303,9 +330,10 @@ void ChromeCloudApp::draw()
 
 	gl::setMatricesWindow(getWindowSize());
 	
+	//...and so here, all we have to do is gl::draw the texture
+	//from out last FBO and we can see all the effects. Cool, eh?
 	gl::draw(mScrollFbo->getColorTexture(), vec2(0));
 	gl::disableAlphaBlending();
-
 	mGUI->draw();
 }
 
@@ -314,4 +342,4 @@ void ChromeCloudApp::exit()
 	mCinderDS->stop();
 }
 
-CINDER_APP_NATIVE(ChromeCloudApp, RendererGl{RendererGl::Options().msaa(0)})
+CINDER_APP(ChromeCloudApp, RendererGl)

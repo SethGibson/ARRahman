@@ -8,6 +8,7 @@
 #include "cinder/app/RendererGl.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Batch.h"
+#include "cinder/gl/Context.h"
 #include "cinder/gl/Fbo.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Texture.h"
@@ -58,6 +59,7 @@ private:
 	//FSFX
 	gl::FboRef				mCloudFbo;
 	gl::Texture2dRef		mTexFSFX;
+	gl::Texture2dRef		mTexFire;
 	gl::GlslProgRef			mFSFXShader;
 	float					mDisplaceAmount,
 							mScrollSpeed;
@@ -103,13 +105,13 @@ void LitCloudApp::setup()
 
 void LitCloudApp::setupGUI()
 {
-	mColorScale = 1.5f;
-	mAmbientScale = 0.8f;
-	mSpecularScale = 1.0f;
-	mSpecularPower = 16.0f;
-	mEnvScale = 1.0f;
-	mDisplaceAmount = 0.1f;
-	mScrollSpeed = 0.1f;
+	mColorScale = 2.0f;
+	mAmbientScale = 0.1f;
+	mSpecularScale = 2.0f;
+	mSpecularPower = 8.0f;
+	mEnvScale = 0.4f;
+	mDisplaceAmount = 0.3f;
+	mScrollSpeed = 0.4f;
 
 	mLightColor = Color::white();
 
@@ -165,7 +167,7 @@ void LitCloudApp::setupMeshes()
 	mSkyBatch = gl::Batch::create(geom::Cube(), mSkyShader);
 	mSkyBatch->getGlslProg()->uniform("uCubeMapTex", 0);
 	
-	mCloudCube = geom::Sphere().radius(0.0125f).subdivisions(8);
+	mCloudCube = geom::Sphere().radius(0.0075f).subdivisions(8);
 	mCloudMesh = gl::VboMesh::create(mCloudCube);
 
 	mCloudData = gl::Vbo::create(GL_ARRAY_BUFFER, mPositions, GL_DYNAMIC_DRAW);
@@ -186,8 +188,11 @@ void LitCloudApp::setupMeshes()
 
 void LitCloudApp::setupFBOs()
 {
-	mCloudFbo = gl::Fbo::create(1280, 720, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA8)));
+	//gl::Fbo::Format cFboFormat;
+	//cFboFormat.
+	mCloudFbo = gl::Fbo::create(1280, 720, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA16F).wrap(GL_CLAMP_TO_EDGE)));
 	mTexFSFX = gl::Texture2d::create(loadImage(loadAsset("water_tex.png")), gl::Texture2d::Format().wrap(GL_REPEAT));
+	mTexFire = gl::Texture2d::create(loadImage(loadAsset("fire_gradient.png")));
 
 	try
 	{
@@ -197,6 +202,7 @@ void LitCloudApp::setupFBOs()
 	{
 		console() << e.what() << endl;
 	}
+	mFSFXShader->uniform("mTexFire", 0);
 
 
 }
@@ -213,43 +219,67 @@ void LitCloudApp::mouseDrag(MouseEvent event)
 
 void LitCloudApp::update()
 {
-	mCinderDS->update();
 	mPositions.clear();
-	Channel16u cChanDepth = mCinderDS->getDepthFrame();
-	Channel16u::Iter cIter = cChanDepth.getIter();
+	mCloudData->bufferData(mPositions.size()*sizeof(vec3), nullptr, GL_DYNAMIC_DRAW);
 
-	while (cIter.line())
+	if (mCinderDS->update())
 	{
-		while (cIter.pixel())
+		Channel16u cChanDepth = mCinderDS->getDepthFrame();
+		Channel16u::Iter cIter = cChanDepth.getIter();
+
+		uint16_t *cDepthBuffer = cChanDepth.getData();
+
+		/*
+		while (cIter.line())
 		{
-			if (cIter.x() % 2 == 0 && cIter.y() % 2 == 0)
+			while (cIter.pixel())
 			{
 				float cVal = (float)cIter.v();
-				if (cVal > 100 && cVal < 1000)
+				float cX = cIter.x();
+				float cY = cIter.y();
+				if (cVal > 100 && cVal < 1000 && cX >= 0 && cX < mCinderDS->getRgbWidth() && cY >= 0 && cY < mCinderDS->getRgbHeight())
 				{
 					float cx = lmap<float>(cIter.x(), 0, mDepthDims.x, -8.f, 8.f);
 					float cy = lmap<float>(cIter.y(), 0, mDepthDims.y, 6.f, -6.f);
 					float cz = lmap<float>(cVal, 100.0f, 1000.0f, -8.f, 8.f);
 
-					Color cColor = mCinderDS->getDepthSpaceColor(vec3(cIter.x(), cIter.y(), cVal));
+					Color cColor = mCinderDS->getDepthSpaceColor(vec3(cX, cY, cVal));
+					mPositions.push_back(CloudPoint(vec3(cx, cy, cz), vec4(cColor.r, cColor.g, cColor.b, 1)));
+				}
+			}
+		}*/
+
+		for (int dy = 0; dy < mDepthDims.y; ++dy)
+		{
+			for (int dx = 0; dx < mDepthDims.x; ++dx)
+			{
+				float cVal = (float)cDepthBuffer[dy * 480 + dx];
+				if (cVal > 100 && cVal < 1000 && dx >= 0 && dx < mDepthDims.x && dy >= 0 && dy < mDepthDims.y)
+				{
+					float cx = lmap<float>(dx, 0, mDepthDims.x, -8.f, 8.f);
+					float cy = lmap<float>(dy, 0, mDepthDims.y, 6.f, -6.f);
+					float cz = lmap<float>(cVal, 100.0f, 1000.0f, -8.f, 8.f);
+
+					Color cColor = mCinderDS->getDepthSpaceColor(vec3(dx, dy, cVal));
 					mPositions.push_back(CloudPoint(vec3(cx, cy, cz), vec4(cColor.r, cColor.g, cColor.b, 1)));
 				}
 			}
 		}
+		mCloudData->bufferData(mPositions.size()*sizeof(vec3), mPositions.data(), GL_DYNAMIC_DRAW);
+		mCloudMesh = gl::VboMesh::create(mCloudCube);
+		mCloudMesh->appendVbo(mCloudAttribs, mCloudData);
+		mCloudBatch->replaceVboMesh(mCloudMesh);
+
+		renderFBOs();
 	}
-
-	mCloudData->bufferData(mPositions.size()*sizeof(vec3), mPositions.data(), GL_DYNAMIC_DRAW);
-	mCloudMesh = gl::VboMesh::create(mCloudCube);
-	mCloudMesh->appendVbo(mCloudAttribs, mCloudData);
-	mCloudBatch->replaceVboMesh(mCloudMesh);
-
-	renderFBOs();
 }
 
 void LitCloudApp::renderFBOs()
 {
-	gl::ScopedFramebuffer cFbo(mCloudFbo);
-	gl::ScopedTextureBind cTex(mSkyTexCube);
+	//gl::ScopedFramebuffer cFbo(mCloudFbo);
+	//gl::ScopedTextureBind cTex(mSkyTexCube);
+	mCloudFbo->bindFramebuffer();
+	mSkyTexCube->bind();
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
 	gl::enableAlphaBlending();
@@ -259,19 +289,25 @@ void LitCloudApp::renderFBOs()
 	mCloudBatch->getGlslProg()->uniform("ViewDirection", mMayaCam.getCamera().getViewDirection());
 	mCloudBatch->getGlslProg()->uniform("LightColor", mLightColor);
 	mCloudBatch->getGlslProg()->uniform("LightPosition", mMayaCam.getCamera().getEyePoint());
+	mCloudBatch->getGlslProg()->uniform("ColorScale", mColorScale);
 	mCloudBatch->getGlslProg()->uniform("SpecularScale", mSpecularScale);
 	mCloudBatch->getGlslProg()->uniform("SpecularPower", mSpecularPower);
 	mCloudBatch->getGlslProg()->uniform("AmbientScale", mAmbientScale);
 	mCloudBatch->getGlslProg()->uniform("EnvScale", mEnvScale);
 	mCloudBatch->drawInstanced(mPositions.size());
+	mSkyTexCube->unbind();
+	mCloudFbo->unbindFramebuffer();
+
 	gl::disableDepthRead();
 	gl::disableDepthWrite();
 	gl::disableAlphaBlending();
+
 }
 
 void LitCloudApp::draw()
 {
 	gl::clear(Color(0.1f, 0.15f, 0.25f));
+	
 	gl::setMatrices(mMayaCam.getCamera());
 
 	gl::enableDepthRead();
@@ -281,28 +317,33 @@ void LitCloudApp::draw()
 	mSkyBatch->draw();
 	gl::popMatrices();
 	mSkyTexCube->unbind();
+
+	mCloudBatch->drawInstanced(mPositions.size());
+	/*
 	gl::disableDepthRead();
-
 	gl::setMatricesWindow(getWindowSize());
-
+	
 	gl::enableAdditiveBlending();
-	mCloudFbo->bindTexture(0);
-	mTexFSFX->bind(1);
+	mTexFire->bind(0);
+	mCloudFbo->bindTexture(1);
+	mTexFSFX->bind(2);
 	mFSFXShader->bind();
-	mFSFXShader->uniform("mTexColor", 0);
-	mFSFXShader->uniform("mTexDisplace", 1);
+	mFSFXShader->uniform("mTexColor", 1);
+	mFSFXShader->uniform("mTexDisplace", 2);
 	mFSFXShader->uniform("DisplaceAmount", mDisplaceAmount);
 	mFSFXShader->uniform("ScrollSpeed", mScrollSpeed);
 	gl::color(ColorA::white());
 	gl::drawSolidRect(Rectf({ vec2(0), getWindowSize() }));
 	gl::disableAlphaBlending();
-
+	
+	
 	gl::enableAlphaBlending();
 	gl::color(Color::white());
 	gl::draw(mCloudFbo->getColorTexture(), vec2(0));
 	gl::disableAlphaBlending();
-
+	
 	mGUI->draw();
+	*/
 }
 
 void LitCloudApp::exit()
