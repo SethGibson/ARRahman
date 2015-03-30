@@ -237,6 +237,7 @@ void ChromeCloudApp::renderCloudFBO()
 {
 	//Fbo::bindFrameBuffer tells Cinder/OpenGL that instead of drawing
 	//to the screen, we want to draw to the specified frame buffer
+	
 	mCloudFbo->bindFramebuffer();
 	gl::ScopedViewport cCloudVP(vec2(0), mCloudFbo->getSize());
 	gl::setMatrices(mMayaCam.getCamera());

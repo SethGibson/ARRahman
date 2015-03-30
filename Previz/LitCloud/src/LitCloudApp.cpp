@@ -260,7 +260,7 @@ void LitCloudApp::update()
 					float cy = lmap<float>(dy, 0, mDepthDims.y, 6.f, -6.f);
 					float cz = lmap<float>(cVal, 100.0f, 1000.0f, -8.f, 8.f);
 
-					Color cColor = mCinderDS->getDepthSpaceColor(vec3(dx, dy, cVal));
+					Color cColor = mCinderDS->getColorFromZImage(vec3(dx, dy, cVal));
 					mPositions.push_back(CloudPoint(vec3(cx, cy, cz), vec4(cColor.r, cColor.g, cColor.b, 1)));
 				}
 			}
@@ -276,8 +276,8 @@ void LitCloudApp::update()
 
 void LitCloudApp::renderFBOs()
 {
-	//gl::ScopedFramebuffer cFbo(mCloudFbo);
-	//gl::ScopedTextureBind cTex(mSkyTexCube);
+	gl::ScopedFramebuffer cFbo(mCloudFbo);
+	gl::ScopedTextureBind cTex(mSkyTexCube);
 	mCloudFbo->bindFramebuffer();
 	mSkyTexCube->bind();
 	gl::enableDepthRead();
@@ -319,7 +319,7 @@ void LitCloudApp::draw()
 	mSkyTexCube->unbind();
 
 	mCloudBatch->drawInstanced(mPositions.size());
-	/*
+	
 	gl::disableDepthRead();
 	gl::setMatricesWindow(getWindowSize());
 	
@@ -343,7 +343,7 @@ void LitCloudApp::draw()
 	gl::disableAlphaBlending();
 	
 	mGUI->draw();
-	*/
+	
 }
 
 void LitCloudApp::exit()
