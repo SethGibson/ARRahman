@@ -19,7 +19,6 @@ out vec4 oColor;
 
 void main()
 {
-/*
 	vec3 cNormal = normalize(ObjectNormal);
 	vec3 cLightDir = normalize(LightPosition - vec3(WorldPosition.xyz));
 	vec3 cEyeDir = normalize(ViewDirection);
@@ -41,6 +40,4 @@ void main()
 	cFragColor += cAmbientContrib;
 
 	oColor = vec4(cFragColor, 1.0);
-	*/
-	oColor = Color;
 }

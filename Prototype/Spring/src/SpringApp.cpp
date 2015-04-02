@@ -99,6 +99,7 @@ void SpringApp::setupScene()
 	//Camera
 	mCamera.setPerspective(45.0f, getWindowAspectRatio(), 1, 5000);
 	mCamera.lookAt(vec3(0), vec3(0, 0, 1), vec3(0, 1, 0));
+	mCamera.setCenterOfInterestPoint(vec3(0, 0, 150));
 	mMayaCam.setCurrentCam(mCamera);
 
 	//PointCloud
@@ -112,7 +113,7 @@ void SpringApp::setupScene()
 		}
 	}
 
-	mMeshInstance = geom::Sphere().radius(0.75f);
+	mMeshInstance = geom::Sphere().radius(0.5f);
 	mMeshCloud = gl::VboMesh::create(mMeshInstance);
 
 	mDataInstance = gl::Vbo::create(GL_ARRAY_BUFFER, mPointsCloud, GL_DYNAMIC_DRAW);
