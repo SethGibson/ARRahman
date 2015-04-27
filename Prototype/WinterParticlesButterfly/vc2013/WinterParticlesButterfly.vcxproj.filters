@@ -24,10 +24,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\WinterApp.cpp">
+    <ClCompile Include="..\src\WinterParticlesButterflyApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\WinterApp.cpp">
+    <ClCompile Include="..\src\WinterParticlesButterflyApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClInclude Include="..\include\Resources.h">
