@@ -107,13 +107,14 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\..\..\..\Cinder_glNext Blocks\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.cpp" />
     <ClCompile Include="..\src\Particle.cpp" />
     <ClCompile Include="..\src\ParticleController.cpp" />
     <ClCompile Include="..\src\WinterApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\..\..\..\Cinder_glNext Blocks\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.h" />
+    <ClInclude Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.h" />
     <ClInclude Include="..\include\Particle.h" />
     <ClInclude Include="..\include\ParticleController.h" />
     <ClInclude Include="..\include\Resources.h" />

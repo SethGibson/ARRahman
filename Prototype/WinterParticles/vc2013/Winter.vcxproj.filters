@@ -33,14 +33,14 @@
     <ClInclude Include="..\include\Resources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClCompile Include="..\..\..\..\..\..\..\..\Cinder_glNext Blocks\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.cpp">
-      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\Particle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ParticleController.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.cpp">
+      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -55,6 +55,9 @@
     </ClInclude>
     <ClInclude Include="..\include\ParticleController.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.h">
+      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

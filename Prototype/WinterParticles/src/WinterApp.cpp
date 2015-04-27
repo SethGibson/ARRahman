@@ -191,8 +191,8 @@ void WinterApp::updatePointCloud()
 			{
 				float cX = cIter.x();
 				float cY = cIter.y();
-				vec3 cWorld = mCinderDS->getZCameraSpacePoint(vec3(cX, cY, cVal));
-				vec2 cUV = mCinderDS->getColorSpaceCoordsFromZCamera(cWorld);
+				vec3 cWorld = mCinderDS->getDepthSpacePoint(vec3(cX, cY, cVal));
+				vec2 cUV = mCinderDS->getColorCoordsFromDepthSpace(cWorld);
 				mPointsCloud.push_back(CloudPoint(cWorld, cUV));
 			}
 		}
