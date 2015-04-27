@@ -181,7 +181,6 @@ void SpringApp::updatePointCloud()
 	mDataInstance->bufferData(mPointsCloud.size()*sizeof(CloudPoint), mPointsCloud.data(), GL_DYNAMIC_DRAW);
 	mMeshCloud->appendVbo(mAttribsInstance, mDataInstance);
 	mBatchCloud->replaceVboMesh(mMeshCloud);
-
 }
 
 void SpringApp::updateFBO()
