@@ -20,7 +20,7 @@ using namespace ci::app;
 using namespace std;
 using namespace CinderDS;
 
-class WinterApp : public App
+class WinterParticlesApp : public App
 {
 public:
 	void setup() override;
@@ -80,7 +80,7 @@ private:
 	
 };
 
-void WinterApp::setup()
+void WinterParticlesApp::setup()
 {
 	mNoOfFramesBeforeSpawingParticles = 200;
 	mNumberOfParticles = 30000;
@@ -94,7 +94,7 @@ void WinterApp::setup()
 	gl::enableDepthWrite();
 }
 
-void WinterApp::setupDS()
+void WinterParticlesApp::setupDS()
 {
 	mCinderDS = CinderDSAPI::create();
 	mCinderDS->init();
@@ -104,7 +104,7 @@ void WinterApp::setupDS()
 	mTexRgb = gl::Texture2d::create(mCinderDS->getRgbWidth(), mCinderDS->getRgbHeight(), gl::Texture2d::Format().internalFormat(GL_RGB8));
 }
 
-void WinterApp::setupScene()
+void WinterParticlesApp::setupScene()
 {
 	getWindow()->setSize(1280, 720);
 	setFrameRate(60);
@@ -146,21 +146,21 @@ void WinterApp::setupScene()
 	mBatchSkyBox->getGlslProg()->uniform("uCubeMapTex", 0);
 }
 
-void WinterApp::setupFBO()
+void WinterParticlesApp::setupFBO()
 {
 }
 
-void WinterApp::mouseDown(MouseEvent event)
+void WinterParticlesApp::mouseDown(MouseEvent event)
 {
 	mMayaCam.mouseDown(event.getPos());
 }
 
-void WinterApp::mouseDrag(MouseEvent event)
+void WinterParticlesApp::mouseDrag(MouseEvent event)
 {
 	mMayaCam.mouseDrag(event.getPos(), event.isLeftDown(), false, event.isRightDown());
 }
 
-void WinterApp::update()
+void WinterParticlesApp::update()
 {
 	mNoOfFramesElapsed++;
 	if (mNoOfFramesElapsed >= mNoOfFramesBeforeSpawingParticles)
@@ -173,7 +173,7 @@ void WinterApp::update()
 	mParticleController.update();
 }
 
-void WinterApp::updatePointCloud()
+void WinterParticlesApp::updatePointCloud()
 {
 	mCinderDS->update();
 	mTexRgb->update(mCinderDS->getRgbFrame());
@@ -205,12 +205,12 @@ void WinterApp::updatePointCloud()
 
 }
 
-void WinterApp::updateFBO()
+void WinterParticlesApp::updateFBO()
 {
 
 }
 
-void WinterApp::draw()
+void WinterParticlesApp::draw()
 {
 	gl::clear(Color(0, 0, 0));
 	gl::setMatrices(mMayaCam.getCamera());
@@ -223,7 +223,7 @@ void WinterApp::draw()
 	
 }
 
-void WinterApp::drawSkyBox()
+void WinterParticlesApp::drawSkyBox()
 {
 	gl::pushMatrices();
 	gl::scale(2000, 2000, 2000);
@@ -233,7 +233,7 @@ void WinterApp::drawSkyBox()
 	gl::popMatrices();
 }
 
-void WinterApp::drawPointCloud()
+void WinterParticlesApp::drawPointCloud()
 {
 	mBatchCloud->getGlslProg()->uniform("ViewDirection", mMayaCam.getCamera().getViewDirection());
 	mBatchCloud->getGlslProg()->uniform("LightPosition", vec3(0));
@@ -247,9 +247,9 @@ void WinterApp::drawPointCloud()
 	gl::popMatrices();
 }
 
-void WinterApp::cleanup()
+void WinterParticlesApp::cleanup()
 {
 	mCinderDS->stop();
 }
 
-CINDER_APP(WinterApp, RendererGl)
+CINDER_APP(WinterParticlesApp, RendererGl)
