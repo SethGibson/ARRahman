@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{45640620-D771-4A4B-959A-0A932E000AE5}</ProjectGuid>
-    <RootNamespace>Winter</RootNamespace>
+    <RootNamespace>WinterParticlesSnow</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -112,7 +112,7 @@
     <ClCompile Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.cpp" />
     <ClCompile Include="..\src\Particle.cpp" />
     <ClCompile Include="..\src\ParticleController.cpp" />
-    <ClCompile Include="..\src\WinterApp.cpp" />
+    <ClCompile Include="..\src\WinterParticlesSnowApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\..\..\..\Cinder_glNext Blocks\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.h" />
