@@ -85,7 +85,7 @@ private:
 	vector<Particle>	mPointsSnow;
 	gl::VboRef			mSnowDataInstance;
 	geom::BufferLayout	mSnowAttribsInstance;
-	geom::Sphere		mSnowMeshInstance;
+	geom::Plane			mSnowMeshInstance;
 	gl::VboMeshRef		mMeshSnow;
 	gl::GlslProgRef		mShaderSnow;
 	gl::BatchRef		mBatchSnow;
@@ -193,7 +193,7 @@ void WinterParticlesButterflyApp::setupScene()
 	mSnowAttribsInstance.append(geom::CUSTOM_4, 3, sizeof(Particle), offsetof(Particle, mLoc), 1);
 	
 
-	mSnowMeshInstance = geom::Sphere().radius(0.2f);
+	mSnowMeshInstance = geom::Plane().size(vec2(2,2));
 	mMeshSnow = gl::VboMesh::create(mSnowMeshInstance);
 	mMeshSnow->appendVbo(mSnowAttribsInstance, mSnowDataInstance);
 
@@ -323,8 +323,8 @@ void WinterParticlesButterflyApp::updatePointCloud()
 			{
 				float cX = cIter.x();
 				float cY = cIter.y();
-				vec3 cWorld = mCinderDS->getDepthSpacePoint(vec3(cX, cY, cVal));
-				vec2 cUV = mCinderDS->getColorCoordsFromDepthSpace(cWorld);
+				vec3 cWorld = mCinderDS->getZCameraSpacePoint(vec3(cX, cY, cVal));
+				vec2 cUV = mCinderDS->getColorSpaceCoordsFromZCamera(cWorld);
 				mPointsCloud.push_back(CloudPoint(cWorld, cUV));
 				
 			}
