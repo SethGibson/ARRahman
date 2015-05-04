@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinterParticles", "WinterParticles.vcxproj", "{45640620-D771-4A4B-959A-0A932E000AE5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Billboards", "Billboards.vcxproj", "{0EB12E6B-19D9-4137-A101-1679726426A5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -10,10 +10,10 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{45640620-D771-4A4B-959A-0A932E000AE5}.Debug|x64.ActiveCfg = Debug|x64
-		{45640620-D771-4A4B-959A-0A932E000AE5}.Debug|x64.Build.0 = Debug|x64
-		{45640620-D771-4A4B-959A-0A932E000AE5}.Release|x64.ActiveCfg = Release|x64
-		{45640620-D771-4A4B-959A-0A932E000AE5}.Release|x64.Build.0 = Release|x64
+		{0EB12E6B-19D9-4137-A101-1679726426A5}.Debug|x64.ActiveCfg = Debug|x64
+		{0EB12E6B-19D9-4137-A101-1679726426A5}.Debug|x64.Build.0 = Debug|x64
+		{0EB12E6B-19D9-4137-A101-1679726426A5}.Release|x64.ActiveCfg = Release|x64
+		{0EB12E6B-19D9-4137-A101-1679726426A5}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
