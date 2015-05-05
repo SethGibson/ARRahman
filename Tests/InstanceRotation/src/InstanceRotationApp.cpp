@@ -84,14 +84,16 @@ void InstanceRotationApp::setup()
 	mParticles.push_back(Particle());
 	mShader = gl::GlslProg::create(loadAsset("vert.glsl"), loadAsset("frag.glsl"));
 	mData = gl::Vbo::create(GL_ARRAY_BUFFER, mParticles, GL_DYNAMIC_DRAW);
-	
-	mAttribs.append(geom::CUSTOM_0, 3, sizeof(Particle), offsetof(Particle, mColor),1);
-	mAttribs.append(geom::CUSTOM_1, 16, sizeof(Particle), offsetof(Particle, mTransform), 1);
-	
+
+	//	Instead of passing in position as an attribute by itself, 
+	//	we pass in the whole transform matrix as an attribute.
+	mAttribs.append(geom::CUSTOM_0, 16, sizeof(Particle), offsetof(Particle, mTransform), 1);
+	mAttribs.append(geom::CUSTOM_1, 3, sizeof(Particle), offsetof(Particle, mColor), 1);
+
 	mMesh = gl::VboMesh::create(geom::Plane().size(vec2(0.5)).axes(vec3(1,0,0), vec3(0,1,0)));
 	mMesh->appendVbo(mAttribs, mData);
 
-	mBatch = gl::Batch::create(mMesh, mShader, { { geom::CUSTOM_0, "iColor" }, { geom::CUSTOM_1, "iModelMatrix" } });
+	mBatch = gl::Batch::create(mMesh, mShader, { { geom::CUSTOM_0, "iModelMatrix" }, { geom::CUSTOM_1, "iColor" } });
 
 	gl::enableAdditiveBlending();
 }
@@ -102,11 +104,9 @@ void InstanceRotationApp::update()
 	if (mParticles.size() < S_NUM_PARTICLES)
 		mParticles.push_back(Particle());
 
-	/*
-	To guarantee that our particles are billboarded and rotating properly,
-	we need to pass in the camera's view direction vector as our per-instance
-	rotation axis. View direction is essentially the camera's Z-vector.
-	*/
+	//	To guarantee that our particles are billboarded and rotating properly,
+	//	we need to pass in the camera's view direction vector as our per-instance
+	//	rotation axis. View direction is essentially the camera's Z-vector.
 	for (auto pit = mParticles.begin(); pit != mParticles.end();)
 	{
 		pit->step((float)getElapsedFrames(), mCamera.getViewDirection());
