@@ -17,7 +17,7 @@
 #include "ParticleController.h"
 #include "Particle.h"
 #include "cinder/Perlin.h"
-
+#include "cinder/ObjLoader.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -33,6 +33,7 @@ public:
 	void update() override;
 	void draw() override;
 	void cleanup() override;
+	void loadObj(const DataSourceRef &dataSource);
 
 private:
 	void setupDS();
@@ -49,6 +50,8 @@ private:
 	CinderDSRef			mCinderDS;
 	gl::Texture2dRef	mTexRgb;
 
+	
+
 	//Particle controller
 	ParticleController mParticleController;
 	int mNoOfFramesBeforeSpawingParticles;
@@ -64,6 +67,11 @@ private:
 	int mZDecrementer;
 	gl::Texture2dRef mPetalTex;
 	Perlin mPerlin;
+
+	
+
+	//model importing
+	ObjLoader loader;
 
 	//PointCloud
 	struct CloudPoint
@@ -92,6 +100,7 @@ private:
 	gl::GlslProgRef		mShaderSnow;
 	gl::BatchRef		mBatchSnow;
 
+	ci::TriMeshRef      mTriMeshSnow;
 
 	//Skybox
 	geom::Cube				mMeshSkyBox;
@@ -120,6 +129,7 @@ void WinterParticlesButterflyApp::setup()
 	mYDecrementer = 0;
 	mZDecrementer = 0;
 
+	
 	mPerlin = Perlin();
 	
 	setupDS();
@@ -184,14 +194,22 @@ void WinterParticlesButterflyApp::setupScene()
 	mSnowDataInstance = gl::Vbo::create(GL_ARRAY_BUFFER, mPointsSnow, GL_DYNAMIC_DRAW);
 	mSnowAttribsInstance.append(geom::CUSTOM_4, 16, sizeof(Particle), offsetof(Particle, mTransform), 1);
 	
-	mSnowMeshInstance = geom::Plane().size(vec2(1)).axes(vec3(0, 1, 0), vec3(1, 0, 0));
-	mMeshSnow = gl::VboMesh::create(mSnowMeshInstance);
+	//mSnowMeshInstance = geom::Plane().size(vec2(1)).axes(vec3(0, 1, 0), vec3(1, 0, 0));
+
+	loader = ObjLoader(loadAsset("rosepetal.obj"));
+
+	mTriMeshSnow = ci::TriMesh::create(loader);
+	mMeshSnow = gl::VboMesh::create(*mTriMeshSnow);
+
+	if (!loader.getAvailableAttribs().count(geom::NORMAL))
+		mTriMeshSnow->recalculateNormals();
+
 	mMeshSnow->appendVbo(mSnowAttribsInstance, mSnowDataInstance);
 
 	mShaderSnow = gl::GlslProg::create(loadAsset("snow.vert"), loadAsset("snow.frag"));
-	mBatchSnow = gl::Batch::create(mMeshSnow, mShaderSnow, { { geom::CUSTOM_4, "iModelMatrix" } });
+	mBatchSnow = gl::Batch::create(*mTriMeshSnow, mShaderSnow, { { geom::CUSTOM_4, "iModelMatrix" } });
 	
-	mPetalTex = gl::Texture2d::create(loadImage(loadAsset("tex_petal.png")));
+	mPetalTex = gl::Texture2d::create(loadImage(loadAsset("rosepetal.png")));
 	
 
 
@@ -310,7 +328,8 @@ void WinterParticlesButterflyApp::update()
 	}
 	
 	mSnowDataInstance->bufferData(mPointsSnow.size()*sizeof(Particle), mPointsSnow.data(), GL_DYNAMIC_DRAW);
-	mMeshSnow = gl::VboMesh::create(mSnowMeshInstance);
+	mTriMeshSnow = ci::TriMesh::create(loader);
+	mMeshSnow = gl::VboMesh::create(*mTriMeshSnow);
 	mMeshSnow->appendVbo(mSnowAttribsInstance, mSnowDataInstance);
 	mBatchSnow->replaceVboMesh(mMeshSnow);
 
