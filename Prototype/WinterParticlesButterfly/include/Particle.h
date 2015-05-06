@@ -42,6 +42,7 @@ class Particle {
 	// void update(const ci::Channel32f &channel, const ci::ivec2 &mouseLoc);
 	 void update();
 	 void draw();
+	 
 
 	 ci::vec3	mLoc;
 	 ci::vec3	mVel;
@@ -52,10 +53,12 @@ class Particle {
 	 float		mRadius, mRadiusDest;
 	 float		mScale;
 	 float		mVelocity;
-
+	 float      mRotSpeed;
 	 float		mMass;
 
 	 int		mAge;
 	 int		mLifespan;
 	 bool		mIsDead;
+
+	 glm::mat4 mTransform;
 };

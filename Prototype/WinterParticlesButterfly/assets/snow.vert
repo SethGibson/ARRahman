@@ -2,31 +2,31 @@
 
 
 
-#version 150
+//uniform mat4	ciModelViewProjection;
+uniform mat4 ciViewMatrix;
+uniform mat4 ciProjectionMatrix;
 
-uniform mat4	ciModelView;
-uniform mat4	ciModelViewProjection;
-uniform mat3	ciNormalMatrix;
-uniform mat4	ciViewMatrix;
-uniform mat4	ciViewMatrixInverse;
+
+uniform vec3 u_CameraUp;					//camera up vector (from the app)
+uniform vec3 u_CameraRight;					//camera right vector (from the app)
+
 
 in vec4		ciPosition;
-in vec3		ciNormal;
+in vec2		ciTexCoord0;
 
+in mat4		iModelMatrix;
 in vec3		iPosition;
 
-out highp vec3	NormalWorldSpace;
-out highp vec3  EyeDirWorldSpace;
+out vec2 UV;
+
 
 void main()
 {
-	vec4 mPosition = (4.0*(ciPosition)+vec4(iPosition,0));
 
-	vec4 positionViewSpace = ciModelView * (4.0*(ciPosition)+vec4(iPosition,0));
-	vec4 eyeDirViewSpace = positionViewSpace - vec4( 0, 0, 0, 1 ); // eye is always at 0,0,0 in view space
-	EyeDirWorldSpace = vec3( ciViewMatrixInverse * eyeDirViewSpace );
-	vec3 normalViewSpace = ciNormalMatrix * ciNormal;
-	NormalWorldSpace = normalize( vec3( vec4( normalViewSpace, 0 ) * ciViewMatrix ) );
-	
-	gl_Position = ciModelViewProjection * mPosition;
+	UV = ciTexCoord0;
+	vec3 mBillboard = iPosition + u_CameraRight*ciPosition.x*4 + u_CameraUp*ciPosition.y*4;
+
+	gl_Position = ciProjectionMatrix * ciViewMatrix * iModelMatrix * vec4(mBillboard,1.0);
+	//gl_Position = ciModelViewProjection * vec4(mBillboard, 1.0);
+
 }
