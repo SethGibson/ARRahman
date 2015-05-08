@@ -107,7 +107,9 @@
     <None Include="..\assets\snow.frag" />
     <None Include="..\assets\snow.vert" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Text Include="..\src\Scratch.txt" />
+  </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\..\..\..\..\Cinder_glNext Blocks\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.cpp" />
     <ClCompile Include="..\src\Particle.cpp" />

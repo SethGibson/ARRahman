@@ -71,7 +71,7 @@ private:
 	
 
 	//model importing
-	ObjLoader loader;
+	//ObjLoader loader;
 
 	//PointCloud
 	struct CloudPoint
@@ -193,10 +193,11 @@ void WinterParticlesButterflyApp::setupScene()
 
 	mSnowDataInstance = gl::Vbo::create(GL_ARRAY_BUFFER, mPointsSnow, GL_DYNAMIC_DRAW);
 	mSnowAttribsInstance.append(geom::CUSTOM_4, 16, sizeof(Particle), offsetof(Particle, mTransform), 1);
+
 	
 	//mSnowMeshInstance = geom::Plane().size(vec2(1)).axes(vec3(0, 1, 0), vec3(1, 0, 0));
 
-	loader = ObjLoader(loadAsset("rosepetal.obj"));
+	ObjLoader loader(loadAsset("rosepetal.obj"));
 
 	mTriMeshSnow = ci::TriMesh::create(loader);
 	mMeshSnow = gl::VboMesh::create(*mTriMeshSnow);
@@ -207,7 +208,7 @@ void WinterParticlesButterflyApp::setupScene()
 	mMeshSnow->appendVbo(mSnowAttribsInstance, mSnowDataInstance);
 
 	mShaderSnow = gl::GlslProg::create(loadAsset("snow.vert"), loadAsset("snow.frag"));
-	mBatchSnow = gl::Batch::create(*mTriMeshSnow, mShaderSnow, { { geom::CUSTOM_4, "iModelMatrix" } });
+	mBatchSnow = gl::Batch::create(*mTriMeshSnow, mShaderSnow, { { geom::CUSTOM_4, "iModelMatrix" }});
 	
 	mPetalTex = gl::Texture2d::create(loadImage(loadAsset("rosepetal.png")));
 	
@@ -328,6 +329,8 @@ void WinterParticlesButterflyApp::update()
 	}
 	
 	mSnowDataInstance->bufferData(mPointsSnow.size()*sizeof(Particle), mPointsSnow.data(), GL_DYNAMIC_DRAW);
+
+	ObjLoader loader(loadAsset("rosepetal.obj"));
 	mTriMeshSnow = ci::TriMesh::create(loader);
 	mMeshSnow = gl::VboMesh::create(*mTriMeshSnow);
 	mMeshSnow->appendVbo(mSnowAttribsInstance, mSnowDataInstance);
