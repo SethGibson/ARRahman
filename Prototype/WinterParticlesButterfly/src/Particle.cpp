@@ -13,6 +13,7 @@ Particle::Particle()
 Particle::Particle(vec3 loc, vec3 vel)
 {
 	
+		mTransform = glm::mat4();
 		mLoc = loc + Rand::randVec3f() * Rand::randFloat(5.0f);
 		vec3 velOffset = Rand::randVec3f() * Rand::randFloat(1.0f, 3.0f);
 		//mVel = vel * 5.0f + velOffset;
@@ -23,13 +24,15 @@ Particle::Particle(vec3 loc, vec3 vel)
 		//mRadiusDest = 3.0f;
 		//mMass = mRadius * mRadius * 0.0001f + 0.01f;
 		//mScale = 3.0f;
-
-		mVelocity = Rand::randFloat(0.2f, 0.3f);
-		mDir = vec3(Rand::randFloat(0.3f, 0.6f), 3.0f, Rand::randFloat(0.3f, 0.6f));
+		mRotSpeed = randFloat(-1.f, 1.f);
+		mVelocity = Rand::randFloat(0.08f, 0.15f);  /// change the gravity here
+		mDir = vec3(Rand::randFloat(-3.0f, 3.0f), -3.0f, Rand::randFloat(0.3f, 0.6f)); // change the direction of the particles.
 		mRadius = Rand::randFloat(1.0f, 3.0f);
 
+		
+
 		mAge = 0;
-		mLifespan = Rand::randInt(250, 350);
+		mLifespan = Rand::randInt(450, 550);
 		mIsDead = false;
 	
 
@@ -101,6 +104,9 @@ Particle::Particle(vec3 loc)
 //	//mAge++;
 //	//if( mAge > mLifespan ) mIsDead = true;
 //}
+
+
+
 
 void Particle::update()
 {

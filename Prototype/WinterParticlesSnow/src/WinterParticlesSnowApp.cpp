@@ -11,7 +11,7 @@
 #include "cinder/gl/GlslProg.h"
 #include "cinder/GeomIo.h"
 #include "cinder/Camera.h"
-#include "cinder/MayaCamUI.h"
+#include "cinder/CameraUi.h"
 #include "cinder/Rand.h"
 #include "CiDSAPI.h"
 #include "ParticleController.h"
@@ -89,7 +89,7 @@ private:
 	gl::BatchRef			mBatchSkyBox;
 
 	CameraPersp				mCamera;
-	MayaCamUI				mMayaCam;
+	CameraUi				mMayaCam;
 
 	
 };
@@ -126,8 +126,10 @@ void WinterParticlesSnowApp::setupScene()
 	//Camera
 	mCamera.setPerspective(45.0f, getWindowAspectRatio(), 1, 5000);
 	mCamera.lookAt(vec3(0), vec3(0, 0, 1), vec3(0, 1, 0));
-	mCamera.setCenterOfInterestPoint(vec3(0, 0, 150));
-	mMayaCam.setCurrentCam(mCamera);
+	mCamera.setPivotDistance(750.0f);
+	mMayaCam = CameraUi(&mCamera, getWindow());
+	//mCamera.setCenterOfInterestPoint(vec3(0, 0, 150));
+	//mMayaCam.setCurrentCam(mCamera);
 
 	//PointCloud
 	mPointsCloud.clear();
@@ -257,8 +259,8 @@ void WinterParticlesSnowApp::updatePointCloud()
 			{
 				float cX = cIter.x();
 				float cY = cIter.y();
-				vec3 cWorld = mCinderDS->getDepthSpacePoint(vec3(cX, cY, cVal));
-				vec2 cUV = mCinderDS->getColorCoordsFromDepthSpace(cWorld);
+				vec3 cWorld = mCinderDS->getZCameraSpacePoint(vec3(cX, cY, cVal));
+				vec2 cUV = mCinderDS->getColorSpaceCoordsFromZCamera(cWorld);
 				mPointsCloud.push_back(CloudPoint(cWorld, cUV));
 				
 			}

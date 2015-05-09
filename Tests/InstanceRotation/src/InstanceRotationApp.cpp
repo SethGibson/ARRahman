@@ -6,6 +6,7 @@
 #include "cinder/gl/Batch.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/Rand.h"
+#include "cinder/Perlin.h"
 
 using namespace ci;
 using namespace ci::app;
@@ -62,8 +63,9 @@ public:
 				mPos += mVel;
 				mSize = lerp<float>(0, mSize_0, (float)mAge / (float)mLife);
 				//now we can generate a model matrix from our position and rotation factors
+				
 				mTransform = glm::translate(mTransform, mPos);
-				mTransform = glm::rotate(mTransform, mRotSpeed*pElapsed*0.1f, pAxis);
+				mTransform = glm::rotate(mTransform, mRotSpeed*pElapsed*0.01f, pAxis);
 			}
 		}
 	};
