@@ -39,25 +39,28 @@
     <ClCompile Include="..\src\ParticleController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\..\..\..\..\Cinder_glNext Blocks\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.cpp">
+    <ClCompile Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.cpp">
       <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\CloudParticle.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Resources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\..\..\..\..\Cinder_glNext Blocks\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.h">
+      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\CloudParticle.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\Particle.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\ParticleController.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\..\..\..\..\..\..\Cinder_glNext Blocks\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.h">
-      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
