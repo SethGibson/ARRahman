@@ -108,19 +108,11 @@
     <None Include="..\assets\snow.vert" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\src\Scratch.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.cpp" />
-    <ClCompile Include="..\src\CloudParticle.cpp" />
-    <ClCompile Include="..\src\Particle.cpp" />
-    <ClCompile Include="..\src\ParticleController.cpp" />
     <ClCompile Include="..\src\WinterParticlesButterflyApp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.h" />
-    <ClInclude Include="..\include\Particle.h" />
-    <ClInclude Include="..\include\ParticleController.h" />
     <ClInclude Include="..\include\Resources.h" />
     <ClInclude Include="..\src\CloudParticle.h" />
   </ItemGroup>

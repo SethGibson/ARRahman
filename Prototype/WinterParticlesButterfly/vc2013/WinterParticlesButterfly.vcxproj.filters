@@ -33,17 +33,8 @@
     <ClInclude Include="..\include\Resources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClCompile Include="..\src\Particle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ParticleController.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.cpp">
       <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\CloudParticle.cpp">
-      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -54,12 +45,6 @@
       <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
     </ClInclude>
     <ClInclude Include="..\src\CloudParticle.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\Particle.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\ParticleController.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -87,10 +72,5 @@
     <None Include="..\assets\snow.vert">
       <Filter>Source Files\shaders</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\src\Scratch.txt">
-      <Filter>Source Files</Filter>
-    </Text>
   </ItemGroup>
 </Project>
