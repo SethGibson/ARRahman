@@ -28,9 +28,10 @@ public:
 
 		mLifespan = Rand::randInt(450, 550);
 		Age = mLifespan;
+		PSize = randFloat(0.5f, 2.5f);
 	}
 
-	void step(float pElapsed, const Perlin &pNoise)
+	void step(float pElapsed, const Perlin &pNoise, const vec3 &pRightDir)
 	{
 		Age--;
 		if (Age>0)
@@ -48,12 +49,14 @@ public:
 			PModelMatrix = mat4();
 			PModelMatrix = glm::translate(PModelMatrix, PPosition);
 			PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.1f, vec3(0.5, 0.5, 0.5));
+			PModelMatrix = glm::rotate(PModelMatrix, 90.0f, pRightDir);
 		}
 	}
 
 	mat4	PModelMatrix;
 	vec3	PPosition;
 	int		Age;
+	float	PSize;
 
 private:
 	vec3	mAcceleration,

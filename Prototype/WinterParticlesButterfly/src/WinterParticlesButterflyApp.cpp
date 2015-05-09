@@ -42,6 +42,7 @@ private:
 
 	void drawPointCloud();
 	void drawSkyBox();
+	void drawParticles();
 
 	//DSAPI
 	CinderDSRef			mCinderDS;
@@ -133,7 +134,7 @@ void WinterParticlesButterflyApp::setupScene()
 	//Camera
 	mCamera.setPerspective(45.0f, getWindowAspectRatio(), 1, 5000);
 	mCamera.lookAt(vec3(0), vec3(0, 0, 1), vec3(0, 1, 0));
-	mCamera.setPivotDistance(40);
+	mCamera.setPivotDistance(150);
 	mMayaCam = CameraUi(&mCamera, getWindow());
 	
 
@@ -148,7 +149,7 @@ void WinterParticlesButterflyApp::setupScene()
 		}
 	}
 
-	mMeshInstance = geom::Sphere().radius(2.0f);
+	mMeshInstance = geom::Sphere().radius(1.0f);
 	mMeshCloud = gl::VboMesh::create(mMeshInstance);
 
 	mDataInstance = gl::Vbo::create(GL_ARRAY_BUFFER, mPointsCloud, GL_DYNAMIC_DRAW);
@@ -167,6 +168,7 @@ void WinterParticlesButterflyApp::setupScene()
 	mSnowDataInstance = gl::Vbo::create(GL_ARRAY_BUFFER, mPointsSnow, GL_DYNAMIC_DRAW);
 	mSnowAttribsInstance.append(geom::CUSTOM_2, 3, sizeof(CloudParticle), offsetof(CloudParticle, PPosition), 1);
 	mSnowAttribsInstance.append(geom::CUSTOM_3, 16, sizeof(CloudParticle), offsetof(CloudParticle, PModelMatrix), 1);
+	mSnowAttribsInstance.append(geom::CUSTOM_4, 1, sizeof(CloudParticle), offsetof(CloudParticle, PSize), 1);
 
 	ObjLoader loader(loadAsset("rosepetal.obj"));
 	mTriMeshSnow = ci::TriMesh::create(loader);
@@ -178,7 +180,7 @@ void WinterParticlesButterflyApp::setupScene()
 	mMeshSnow->appendVbo(mSnowAttribsInstance, mSnowDataInstance);
 
 	mShaderSnow = gl::GlslProg::create(loadAsset("snow.vert"), loadAsset("snow.frag"));
-	mBatchSnow = gl::Batch::create(mMeshSnow, mShaderSnow, { { geom::CUSTOM_2, "iPosition" }, { geom::CUSTOM_3, "iModelMatrix" } });
+	mBatchSnow = gl::Batch::create(mMeshSnow, mShaderSnow, { { geom::CUSTOM_2, "iPosition" }, { geom::CUSTOM_3, "iModelMatrix" }, { geom::CUSTOM_4, "iSize" } });
 	mPetalTex = gl::Texture2d::create(loadImage(loadAsset("rosepetal.png")));
 
 	//Skybox
@@ -204,8 +206,8 @@ void WinterParticlesButterflyApp::update()
 		if (!mThousandParticlesSpawned)
 		{
 			//Change the number in the for loop to generate more particles at a position per for loop iteration. Higher the number denser the particles.
-			int noOfParticlesPerSpawn = 3;  
-			int TotalNumberOfParticles = 150; // set total number of particles spawned here
+			int noOfParticlesPerSpawn = 30;  
+			int TotalNumberOfParticles = 1000; // set total number of particles spawned here
 
 			for (int i = 0; i < noOfParticlesPerSpawn; i++)
 			{
@@ -236,9 +238,11 @@ void WinterParticlesButterflyApp::update()
 	}
 
 	float cElapsed = (float)getElapsedSeconds();
+	vec3 cUpDir, cRightDir;
+	mCamera.getBillboardVectors(&cRightDir, &cUpDir);
 	for (auto pit = mPointsSnow.begin(); pit != mPointsSnow.end();)
 	{
-		pit->step(cElapsed, mPerlin);
+		pit->step(cElapsed, mPerlin, cRightDir);
 		if (pit->Age <= 0)
 			pit = mPointsSnow.erase(pit);
 		else
@@ -261,7 +265,7 @@ void WinterParticlesButterflyApp::updatePointCloud()
 	{
 		while (cIter.pixel())
 		{
-			if (cIter.x() % 8 == 0 && cIter.y() % 8 == 0)
+			if (cIter.x() % 4 == 0 && cIter.y() % 4 == 0)
 			{
 				float cVal = (float)cIter.v();
 				if (cVal > 100 && cVal < 1000)
@@ -296,16 +300,8 @@ void WinterParticlesButterflyApp::draw()
 
 	drawSkyBox();
 	drawPointCloud();
+	drawParticles();
 
-	//draw particles
-	mBatchSnow->getGlslProg()->uniform("u_SamplerRGB", 0);
-
-	gl::pushMatrices();
-	gl::scale(vec3(1, -1, 1));
-	mPetalTex->bind(0);
-	mBatchSnow->drawInstanced(mPointsSnow.size());
-	mPetalTex->unbind();
-	gl::popMatrices();
 	gl::disableAlphaBlending();
 }
 
@@ -323,7 +319,7 @@ void WinterParticlesButterflyApp::drawSkyBox()
 void WinterParticlesButterflyApp::drawPointCloud()
 {
 	mBatchCloud->getGlslProg()->uniform("ViewDirection", mMayaCam.getCamera().getViewDirection());
-	mBatchCloud->getGlslProg()->uniform("LightPosition", vec3(0));
+	mBatchCloud->getGlslProg()->uniform("LightPosition", vec3(0,100,0));
 	
 	gl::pushMatrices();
 	gl::scale(vec3(1, -1, 1));
@@ -334,6 +330,20 @@ void WinterParticlesButterflyApp::drawPointCloud()
 	mTexSkyBox->unbind();
 	gl::popMatrices();
 	
+}
+
+void WinterParticlesButterflyApp::drawParticles()
+{
+	mBatchSnow->getGlslProg()->uniform("u_SamplerRGB", 0);
+	mBatchSnow->getGlslProg()->uniform("u_ViewDir", mMayaCam.getCamera().getViewDirection());
+	mBatchSnow->getGlslProg()->uniform("u_LightPos", vec3(0, 100, 0));
+
+	gl::pushMatrices();
+	gl::scale(vec3(1, -1, 1));
+	mPetalTex->bind(0);
+	mBatchSnow->drawInstanced(mPointsSnow.size());
+	mPetalTex->unbind();
+	gl::popMatrices();
 }
 
 void WinterParticlesButterflyApp::cleanup()
