@@ -54,22 +54,31 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\assets\cloud.frag">
+    <None Include="..\assets\cloud_frag.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\cloud.vert">
+    <None Include="..\assets\cloud_vert.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\skybox.frag">
+    <None Include="..\assets\skybox_frag.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\skybox.vert">
+    <None Include="..\assets\skybox_vert.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\snow.frag">
+    <None Include="..\assets\snow_frag.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\snow.vert">
+    <None Include="..\assets\snow_vert.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\blur_frag.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\blur_u_vert.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\blur_v_vert.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

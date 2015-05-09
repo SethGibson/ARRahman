@@ -100,14 +100,6 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\assets\cloud.frag" />
-    <None Include="..\assets\cloud.vert" />
-    <None Include="..\assets\skybox.frag" />
-    <None Include="..\assets\skybox.vert" />
-    <None Include="..\assets\snow.frag" />
-    <None Include="..\assets\snow.vert" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.cpp" />
     <ClCompile Include="..\src\WinterParticlesButterflyApp.cpp" />
   </ItemGroup>
@@ -115,6 +107,17 @@
     <ClInclude Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.h" />
     <ClInclude Include="..\include\Resources.h" />
     <ClInclude Include="..\src\CloudParticle.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\assets\blur_frag.glsl" />
+    <None Include="..\assets\blur_u_vert.glsl" />
+    <None Include="..\assets\blur_v_vert.glsl" />
+    <None Include="..\assets\cloud_frag.glsl" />
+    <None Include="..\assets\cloud_vert.glsl" />
+    <None Include="..\assets\skybox_frag.glsl" />
+    <None Include="..\assets\skybox_vert.glsl" />
+    <None Include="..\assets\snow_frag.glsl" />
+    <None Include="..\assets\snow_vert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

@@ -39,6 +39,7 @@ private:
 
 	void updatePointCloud();
 	void updateFBO();
+	void updateParticles();
 
 	void drawPointCloud();
 	void drawSkyBox();
@@ -72,14 +73,18 @@ private:
 
 	//Snow
 	vector<CloudParticle>	mPointsSnow;
-	gl::VboRef			mSnowDataInstance;
-	geom::BufferLayout	mSnowAttribsInstance;
-	geom::Plane			mSnowMeshInstance;
-	gl::VboMeshRef		mMeshSnow;
-	gl::GlslProgRef		mShaderSnow;
-	gl::BatchRef		mBatchSnow;
-
-	ci::TriMeshRef      mTriMeshSnow;
+	gl::VboRef				mSnowDataInstance;
+	geom::BufferLayout		mSnowAttribsInstance;
+	geom::Plane				mSnowMeshInstance;
+	gl::VboMeshRef			mMeshSnow;
+	gl::GlslProgRef			mShaderSnow,
+							mShaderBlurU,
+							mShaderBlurV;
+	gl::BatchRef			mBatchSnow;
+	ci::TriMeshRef			mTriMeshSnow;
+	gl::FboRef				mFboRaw,
+							mFboBlurU,
+							mFboBlurV;
 
 	//Skybox
 	geom::Cube				mMeshSkyBox;
@@ -157,7 +162,7 @@ void WinterParticlesButterflyApp::setupScene()
 	mAttribsInstance.append(geom::CUSTOM_1, 2, sizeof(CloudPoint), offsetof(CloudPoint, PUV), 1);
 	mMeshCloud->appendVbo(mAttribsInstance, mDataInstance);
 
-	mShaderCloud = gl::GlslProg::create(loadAsset("cloud.vert"), loadAsset("cloud.frag"));
+	mShaderCloud = gl::GlslProg::create(loadAsset("cloud_vert.glsl"), loadAsset("cloud_frag.glsl"));
 	mBatchCloud = gl::Batch::create(mMeshCloud, mShaderCloud, { { geom::CUSTOM_0, "iPosition" }, { geom::CUSTOM_1, "iUV" } }); 
 
 	mBatchCloud->getGlslProg()->uniform("mTexRgb", 0);
@@ -179,77 +184,33 @@ void WinterParticlesButterflyApp::setupScene()
 
 	mMeshSnow->appendVbo(mSnowAttribsInstance, mSnowDataInstance);
 
-	mShaderSnow = gl::GlslProg::create(loadAsset("snow.vert"), loadAsset("snow.frag"));
+	mShaderSnow = gl::GlslProg::create(loadAsset("snow_vert.glsl"), loadAsset("snow_frag.glsl"));
 	mBatchSnow = gl::Batch::create(mMeshSnow, mShaderSnow, { { geom::CUSTOM_2, "iPosition" }, { geom::CUSTOM_3, "iModelMatrix" }, { geom::CUSTOM_4, "iSize" } });
 	mPetalTex = gl::Texture2d::create(loadImage(loadAsset("rosepetal.png")));
 
 	//Skybox
 	mTexSkyBox = gl::TextureCubeMap::create(loadImage(loadAsset("ph_cubemap.png")), gl::TextureCubeMap::Format().mipmap().internalFormat(GL_RGBA8));
-	mShaderSkyBox = gl::GlslProg::create(loadAsset("skybox.vert"), loadAsset("skybox.frag"));
+	mShaderSkyBox = gl::GlslProg::create(loadAsset("skybox_vert.glsl"), loadAsset("skybox_frag.glsl"));
 	mBatchSkyBox = gl::Batch::create(geom::Cube(), mShaderSkyBox);
 	mBatchSkyBox->getGlslProg()->uniform("mTexCube", 0);
 }
 
 void WinterParticlesButterflyApp::setupFBO()
 {
+	mFboRaw = gl::Fbo::create(getWindowWidth(), getWindowHeight(), gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA32F).dataType(GL_FLOAT)));
+	mFboBlurU = gl::Fbo::create(getWindowWidth(), getWindowHeight(), gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA32F).dataType(GL_FLOAT)));
+	mFboBlurV = gl::Fbo::create(getWindowWidth(), getWindowHeight(), gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA32F).dataType(GL_FLOAT)));
+
+	//we'll set up fbo shaders here too
+	mShaderBlurU = gl::GlslProg::create(loadAsset("blur_u_vert.glsl"), loadAsset("blur_frag.glsl"));
+	mShaderBlurV = gl::GlslProg::create(loadAsset("blur_v_vert.glsl"), loadAsset("blur_frag.glsl"));
 }
 
 void WinterParticlesButterflyApp::update()
 {
-
 	updatePointCloud();
-
-	mTimeToSpawnParticles--;
-
-	if (mTimeToSpawnParticles <= 0)
-	{
-		if (!mThousandParticlesSpawned)
-		{
-			//Change the number in the for loop to generate more particles at a position per for loop iteration. Higher the number denser the particles.
-			int noOfParticlesPerSpawn = 30;  
-			int TotalNumberOfParticles = 1000; // set total number of particles spawned here
-
-			for (int i = 0; i < noOfParticlesPerSpawn; i++)
-			{
-				mPointsSnow.push_back(CloudParticle(vec3(Rand::randFloat(-50.0f, 50.0f), Rand::randFloat(70.0f, 30.0f), 100)));
-				mPointsSnow.push_back(CloudParticle(vec3(Rand::randFloat(-50.0f, 50.0f), Rand::randFloat(70.0f, 30.0f), 100)));
-			}
-
-			// add the total of number of particles spawned in both for loops here
-			mNumberOfParticlesSpawned = mNumberOfParticlesSpawned + 2 * noOfParticlesPerSpawn;
-
-			// change this number for changing the number of particles
-			if (mNumberOfParticlesSpawned > TotalNumberOfParticles)
-			{
-
-				//reset after spawning
-				mNumberOfParticlesSpawned = 0;
-				mXIterator = Rand::randInt(-500, -300);
-				mZIterator = Rand::randInt(300, 700); 
-				mZDecrementer = Rand::randInt(700, 1000);
-				mXDecrementer = Rand::randInt(400, 500);
-				mThousandParticlesSpawned = true;
-				mTimeToSpawnParticles = Rand::randInt(500, 550);
-			}
-		}
-
-		else
-			mThousandParticlesSpawned = false;
-	}
-
-	float cElapsed = (float)getElapsedSeconds();
-	vec3 cUpDir, cRightDir;
-	mCamera.getBillboardVectors(&cRightDir, &cUpDir);
-	for (auto pit = mPointsSnow.begin(); pit != mPointsSnow.end();)
-	{
-		pit->step(cElapsed, mPerlin, cRightDir);
-		if (pit->Age <= 0)
-			pit = mPointsSnow.erase(pit);
-		else
-			++pit;
-	}
-
-	mSnowDataInstance->bufferData(mPointsSnow.size()*sizeof(CloudParticle), mPointsSnow.data(), GL_DYNAMIC_DRAW);
+	updateParticles();
+	updateFBO();
 }
 
 void WinterParticlesButterflyApp::updatePointCloud()
@@ -284,24 +245,115 @@ void WinterParticlesButterflyApp::updatePointCloud()
 	mDataInstance->bufferData(mPointsCloud.size()*sizeof(CloudPoint), mPointsCloud.data(), GL_DYNAMIC_DRAW);
 }
 
+void WinterParticlesButterflyApp::updateParticles()
+{
+	mTimeToSpawnParticles--;
+
+	if (mTimeToSpawnParticles <= 0)
+	{
+		if (!mThousandParticlesSpawned)
+		{
+			//Change the number in the for loop to generate more particles at a position per for loop iteration. Higher the number denser the particles.
+			int noOfParticlesPerSpawn = 30;
+			int TotalNumberOfParticles = 1000; // set total number of particles spawned here
+
+			for (int i = 0; i < noOfParticlesPerSpawn; i++)
+			{
+				mPointsSnow.push_back(CloudParticle(vec3(Rand::randFloat(-50.0f, 50.0f), Rand::randFloat(70.0f, 30.0f), 100)));
+				mPointsSnow.push_back(CloudParticle(vec3(Rand::randFloat(-50.0f, 50.0f), Rand::randFloat(70.0f, 30.0f), 100)));
+			}
+
+			// add the total of number of particles spawned in both for loops here
+			mNumberOfParticlesSpawned = mNumberOfParticlesSpawned + 2 * noOfParticlesPerSpawn;
+
+			// change this number for changing the number of particles
+			if (mNumberOfParticlesSpawned > TotalNumberOfParticles)
+			{
+
+				//reset after spawning
+				mNumberOfParticlesSpawned = 0;
+				mXIterator = Rand::randInt(-500, -300);
+				mZIterator = Rand::randInt(300, 700);
+				mZDecrementer = Rand::randInt(700, 1000);
+				mXDecrementer = Rand::randInt(400, 500);
+				mThousandParticlesSpawned = true;
+				mTimeToSpawnParticles = Rand::randInt(500, 550);
+			}
+		}
+
+		else
+			mThousandParticlesSpawned = false;
+	}
+
+	float cElapsed = (float)getElapsedSeconds();
+	vec3 cUpDir, cRightDir;
+	mCamera.getBillboardVectors(&cRightDir, &cUpDir);
+	for (auto pit = mPointsSnow.begin(); pit != mPointsSnow.end();)
+	{
+		pit->step(cElapsed, mPerlin, cRightDir);
+		if (pit->Age <= 0)
+			pit = mPointsSnow.erase(pit);
+		else
+			++pit;
+	}
+
+	mSnowDataInstance->bufferData(mPointsSnow.size()*sizeof(CloudParticle), mPointsSnow.data(), GL_DYNAMIC_DRAW);
+
+}
+
 void WinterParticlesButterflyApp::updateFBO()
 {
+	gl::ScopedViewport cFboView(0, 0, mFboRaw->getWidth(), mFboRaw->getHeight());
 
+	mFboRaw->bindFramebuffer();
+	gl::pushMatrices();
+	gl::setMatrices(mCamera);
+	gl::clear(ColorA::zero());
+	drawParticles();
+	gl::popMatrices();
+	mFboRaw->unbindFramebuffer();
+
+	//Blur U
+	mFboBlurU->bindFramebuffer();
+	gl::pushMatrices();
+	gl::setMatricesWindow(getWindowSize());
+	gl::clear(ColorA::zero());
+	mFboRaw->bindTexture(0);
+	mShaderBlurU->uniform("u_SamplerFBO", 0);
+	mShaderBlurU->bind();
+	gl::drawSolidRect(Rectf({ vec2(0), getWindowSize() }));
+	mFboRaw->unbindTexture(0);
+	gl::popMatrices();
+	mFboBlurU->unbindFramebuffer();
+
+	//Blur V
+	mFboBlurV->bindFramebuffer();
+	gl::pushMatrices();
+	gl::setMatricesWindow(getWindowSize());
+	gl::clear(ColorA::zero());
+	mFboBlurU->bindTexture(0);
+	mShaderBlurV->uniform("u_SamplerFBO", 0);
+	mShaderBlurV->bind();
+	gl::drawSolidRect(Rectf({ vec2(0), getWindowSize() }));
+	mFboBlurU->unbindTexture(0);
+	gl::popMatrices();
+	mFboBlurV->unbindFramebuffer();
 }
 
 void WinterParticlesButterflyApp::draw()
 {
-
 	gl::clear(Color(0, 0, 0));
 	gl::setMatrices(mMayaCam.getCamera());
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
-	gl::enableAlphaBlending();
 
 	drawSkyBox();
 	drawPointCloud();
 	drawParticles();
 
+	gl::enableAdditiveBlending();
+	gl::setMatricesWindow(getWindowWidth(), getWindowHeight());
+	gl::draw(mFboBlurV->getColorTexture(), Rectf({ vec2(0), getWindowSize() }));
 	gl::disableAlphaBlending();
 }
 
@@ -313,7 +365,6 @@ void WinterParticlesButterflyApp::drawSkyBox()
 	mBatchSkyBox->draw();
 	mTexSkyBox->unbind();
 	gl::popMatrices();
-
 }
 
 void WinterParticlesButterflyApp::drawPointCloud()
