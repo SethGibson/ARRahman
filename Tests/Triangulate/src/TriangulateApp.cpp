@@ -81,6 +81,10 @@ void TriangulateApp::update()
 
 	if (mPoints.size()>3)
 		mTriangles = CiDelaunay::triangulate(mPoints);
+
+	gl::VboMeshRef cTMesh = gl::VboMesh::create(*mTriangles);
+	//gl::VboMeshRef cTriangleMesh = gl::VboMesh(mTriangles->getNumVertices(), mTriangles->getNumIndices(), GL_TRIANGLES, GL_UNSIGNED_INT,
+	mBatch = gl::Batch::create(*mTriangles, mShader);
 }
 
 void TriangulateApp::draw()
