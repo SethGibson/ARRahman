@@ -359,12 +359,12 @@ void WinterParticlesButterflyApp::draw()
 
 void WinterParticlesButterflyApp::drawSkyBox()
 {
-	gl::pushMatrices();
-	gl::scale(2000, 2000, 2000);
+	gl::disable(GL_DEPTH_TEST);
+	mBatchSkyBox->getGlslProg()->uniform("u_ViewMatrix", mCamera.getViewMatrix());
 	mTexSkyBox->bind();
 	mBatchSkyBox->draw();
 	mTexSkyBox->unbind();
-	gl::popMatrices();
+	gl::enable(GL_DEPTH_TEST);
 }
 
 void WinterParticlesButterflyApp::drawPointCloud()
