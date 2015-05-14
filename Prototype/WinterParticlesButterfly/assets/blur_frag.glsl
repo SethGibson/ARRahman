@@ -26,5 +26,5 @@ void main()
     cAccum += texture2D(u_SamplerFBO, BlurSamples[12])*0.00895781211794;
     cAccum += texture2D(u_SamplerFBO, BlurSamples[13])*0.0044299121055113265;
 
-	FragColor = vec4(cAccum.rgb*vec3(1.5), cAccum.a);
+	FragColor = vec4(cAccum.rgb*vec3(1.3), cAccum.a);
 }

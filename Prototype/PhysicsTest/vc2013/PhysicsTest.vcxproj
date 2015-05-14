@@ -82,7 +82,7 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>"..\..\..\..\..\..\libs\Cinder\include";..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CINDER_DEV)\include;..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>cinder-$(PlatformToolset).lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>

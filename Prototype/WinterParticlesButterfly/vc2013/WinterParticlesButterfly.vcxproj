@@ -100,11 +100,11 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\..\..\..\Cinder_glNext Blocks\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.cpp" />
     <ClCompile Include="..\src\WinterParticlesButterflyApp.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\..\libs\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.h" />
+    <ClInclude Include="..\..\..\..\..\..\..\..\..\Cinder_glNext Blocks\CinderBlocks\blocks\Cinder-DSAPI\src\CiDSAPI.h" />
     <ClInclude Include="..\include\Resources.h" />
     <ClInclude Include="..\src\CloudParticle.h" />
   </ItemGroup>

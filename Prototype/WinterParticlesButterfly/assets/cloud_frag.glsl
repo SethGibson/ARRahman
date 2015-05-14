@@ -20,5 +20,6 @@ void main()
 	float cDiffTerm = max(dot(cNormal,cLightDir), 0.0);
 	vec4 cCubeContrib = texture(mTexCube, cNormal);
 	vec4 cTexContrib = texture2D(mTexRgb, vec2(UV.x,1.0-UV.y));
-	oColor = mix(cTexContrib, cCubeContrib, cDiffTerm);
+	//oColor = mix(cTexContrib, cCubeContrib, cDiffTerm);
+	oColor = vec4(cTexContrib.rgb*vec3(1.8), cTexContrib.a);
 }

@@ -133,7 +133,10 @@ void WinterParticlesButterflyApp::setupDS()
 
 void WinterParticlesButterflyApp::setupScene()
 {
-	getWindow()->setSize(1280, 720);
+	//getWindow()->setSize(1920, 1080);
+
+	
+	setFullScreen(true);
 	setFrameRate(60);
 
 	//Camera
@@ -154,7 +157,7 @@ void WinterParticlesButterflyApp::setupScene()
 		}
 	}
 
-	mMeshInstance = geom::Sphere().radius(1.0f);
+	mMeshInstance = geom::Sphere().radius(0.2f);
 	mMeshCloud = gl::VboMesh::create(mMeshInstance);
 
 	mDataInstance = gl::Vbo::create(GL_ARRAY_BUFFER, mPointsCloud, GL_DYNAMIC_DRAW);
@@ -226,15 +229,15 @@ void WinterParticlesButterflyApp::updatePointCloud()
 	{
 		while (cIter.pixel())
 		{
-			if (cIter.x() % 4 == 0 && cIter.y() % 4 == 0)
+			if (cIter.x() % 1 == 0 && cIter.y() % 1 == 0)
 			{
 				float cVal = (float)cIter.v();
 				if (cVal > 100 && cVal < 1000)
 				{
 					float cX = cIter.x();
 					float cY = cIter.y();
-					vec3 cWorld = mCinderDS->getDepthSpacePoint(vec3(cX, cY, cVal));
-					vec2 cUV = mCinderDS->getColorCoordsFromDepthSpace(cWorld);
+					vec3 cWorld = mCinderDS->getZCameraSpacePoint(vec3(cX, cY, cVal));
+					vec2 cUV = mCinderDS->getColorSpaceCoordsFromZCamera(cWorld);
 					mPointsCloud.push_back(CloudPoint(cWorld, cUV));
 
 				}
@@ -254,8 +257,8 @@ void WinterParticlesButterflyApp::updateParticles()
 		if (!mThousandParticlesSpawned)
 		{
 			//Change the number in the for loop to generate more particles at a position per for loop iteration. Higher the number denser the particles.
-			int noOfParticlesPerSpawn = 30;
-			int TotalNumberOfParticles = 1000; // set total number of particles spawned here
+			int noOfParticlesPerSpawn = 10;
+			int TotalNumberOfParticles = 200; // set total number of particles spawned here
 
 			for (int i = 0; i < noOfParticlesPerSpawn; i++)
 			{
@@ -310,6 +313,7 @@ void WinterParticlesButterflyApp::updateFBO()
 	gl::setMatrices(mCamera);
 	gl::clear(ColorA::zero());
 	drawParticles();
+	drawPointCloud();
 	gl::popMatrices();
 	mFboRaw->unbindFramebuffer();
 
