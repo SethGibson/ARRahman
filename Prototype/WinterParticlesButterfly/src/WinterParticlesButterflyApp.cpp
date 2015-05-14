@@ -134,8 +134,6 @@ void WinterParticlesButterflyApp::setupDS()
 void WinterParticlesButterflyApp::setupScene()
 {
 	//getWindow()->setSize(1920, 1080);
-
-	
 	setFullScreen(true);
 	setFrameRate(60);
 
@@ -157,7 +155,7 @@ void WinterParticlesButterflyApp::setupScene()
 		}
 	}
 
-	mMeshInstance = geom::Sphere().radius(0.2f);
+	mMeshInstance = geom::Sphere().radius(0.3f);
 	mMeshCloud = gl::VboMesh::create(mMeshInstance);
 
 	mDataInstance = gl::Vbo::create(GL_ARRAY_BUFFER, mPointsCloud, GL_DYNAMIC_DRAW);
@@ -229,15 +227,15 @@ void WinterParticlesButterflyApp::updatePointCloud()
 	{
 		while (cIter.pixel())
 		{
-			if (cIter.x() % 1 == 0 && cIter.y() % 1 == 0)
+			if (cIter.x() % 2 == 0 && cIter.y() % 2 == 0)
 			{
 				float cVal = (float)cIter.v();
 				if (cVal > 100 && cVal < 1000)
 				{
 					float cX = cIter.x();
 					float cY = cIter.y();
-					vec3 cWorld = mCinderDS->getZCameraSpacePoint(vec3(cX, cY, cVal));
-					vec2 cUV = mCinderDS->getColorSpaceCoordsFromZCamera(cWorld);
+					vec3 cWorld = mCinderDS->getDepthSpacePoint(vec3(cX, cY, cVal));
+					vec2 cUV = mCinderDS->getColorCoordsFromDepthSpace(cWorld);
 					mPointsCloud.push_back(CloudPoint(cWorld, cUV));
 
 				}
