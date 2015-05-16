@@ -36,6 +36,9 @@
     <ClCompile Include="..\src\Particle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\blocks\Cinder-DSAPI\src\CiDSAPI.cpp">
+      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Resources.h">
@@ -47,6 +50,12 @@
     <ClInclude Include="..\src\Particle.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\SettingsUi.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\blocks\Cinder-DSAPI\src\CiDSAPI.h">
+      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resources.rc">
@@ -54,34 +63,34 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\assets\blur_u_fragment.glsl">
+    <None Include="..\assets\shaders\blur_u_fragment.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\blur_v_fragment.glsl">
+    <None Include="..\assets\shaders\blur_v_fragment.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\highpass_fragment.glsl">
+    <None Include="..\assets\shaders\highpass_fragment.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\particle_fragment.glsl">
+    <None Include="..\assets\shaders\particle_fragment.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\particle_vertex.glsl">
+    <None Include="..\assets\shaders\particle_vertex.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\passthru_vertex.glsl">
+    <None Include="..\assets\shaders\passthru_vertex.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\pointcloud_fragment.glsl">
+    <None Include="..\assets\shaders\pointcloud_fragment.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\pointcloud_vertex.glsl">
+    <None Include="..\assets\shaders\pointcloud_vertex.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\skybox_fragment.glsl">
+    <None Include="..\assets\shaders\skybox_fragment.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\skybox_vertex.glsl">
+    <None Include="..\assets\shaders\skybox_vertex.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

@@ -7,12 +7,14 @@
 #include "cinder/Rand.h"
 
 using namespace ci;
+
+// TODO: Consider creating derived classes
 class Particle
 {
 public:
 	Particle();
-	Particle(vec3 pPosition);
-	Particle(vec3 pPosition, vec2 pUV);
+	Particle(vec3 pPosition);							//Generic Particle Constructor
+	Particle(vec3 pPosition, vec2 pUV, float pSize);	//Pointcloud Particle Constructor
 	~Particle();
 
 	void Step(float pElapsed, const Perlin &pNoise, const vec3 &pRightDir);

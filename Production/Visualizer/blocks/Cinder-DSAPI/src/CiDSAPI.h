@@ -31,9 +31,8 @@ namespace CinderDS
 
 	//Index, Serial Number
 	typedef pair<int, uint32_t> camera_type;
-#ifndef DSAPI_VER_19
 	vector<camera_type> GetCameraList();
-#endif
+
 	class CinderDSAPI;
 	typedef std::shared_ptr<DSAPI> DSAPIRef;
 	typedef std::shared_ptr<CinderDSAPI> CinderDSRef;
@@ -47,9 +46,7 @@ namespace CinderDS
 		~CinderDSAPI();
 
 		bool init();
-#ifndef DSAPI_VER_19
 		bool init(uint32_t pSerialNo);
-#endif
 		bool initForAlignment();
 		bool initRgb(const FrameSize &pRes, const int &pFPS);
 		bool initDepth(const FrameSize &pRes, const int &pFPS);

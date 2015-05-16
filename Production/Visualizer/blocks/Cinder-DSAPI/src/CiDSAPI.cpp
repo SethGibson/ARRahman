@@ -15,7 +15,7 @@ namespace CinderDS
 	{
 		return CinderDSRef(new CinderDSAPI());
 	}
-#ifndef DSAPI_VER_19
+
 	vector<camera_type> GetCameraList()
 	{
 		vector<camera_type> cCameraList;
@@ -44,7 +44,6 @@ namespace CinderDS
 		}
 		return mIsInit;
 	}
-#endif
 
 	bool CinderDSAPI::init()
 	{

@@ -15,6 +15,11 @@ Particle::Particle(vec3 pPos)
 	PSize = randFloat(0.5f, 2.5f);
 }
 
+Particle::Particle(vec3 pPosition, vec2 pUV, float pSize) : PPosition(pPosition), PUV(pUV), PSize(pSize)
+{
+
+}
+
 void Particle::Step(float pElapsed, const Perlin &pNoise, const vec3 &pRightDir)
 {
 	Age--;

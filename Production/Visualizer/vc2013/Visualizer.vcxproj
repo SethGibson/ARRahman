@@ -100,25 +100,27 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\assets\blur_u_fragment.glsl" />
-    <None Include="..\assets\blur_v_fragment.glsl" />
-    <None Include="..\assets\highpass_fragment.glsl" />
-    <None Include="..\assets\particle_fragment.glsl" />
-    <None Include="..\assets\particle_vertex.glsl" />
-    <None Include="..\assets\passthru_vertex.glsl" />
-    <None Include="..\assets\pointcloud_fragment.glsl" />
-    <None Include="..\assets\pointcloud_vertex.glsl" />
-    <None Include="..\assets\skybox_fragment.glsl" />
-    <None Include="..\assets\skybox_vertex.glsl" />
+    <None Include="..\assets\shaders\blur_u_fragment.glsl" />
+    <None Include="..\assets\shaders\blur_v_fragment.glsl" />
+    <None Include="..\assets\shaders\highpass_fragment.glsl" />
+    <None Include="..\assets\shaders\particle_fragment.glsl" />
+    <None Include="..\assets\shaders\particle_vertex.glsl" />
+    <None Include="..\assets\shaders\passthru_vertex.glsl" />
+    <None Include="..\assets\shaders\pointcloud_fragment.glsl" />
+    <None Include="..\assets\shaders\pointcloud_vertex.glsl" />
+    <None Include="..\assets\shaders\skybox_fragment.glsl" />
+    <None Include="..\assets\shaders\skybox_vertex.glsl" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
+    <ClCompile Include="..\blocks\Cinder-DSAPI\src\CiDSAPI.cpp" />
     <ClCompile Include="..\src\Particle.cpp" />
     <ClCompile Include="..\src\VisualizerApp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\blocks\Cinder-DSAPI\src\CiDSAPI.h" />
     <ClInclude Include="..\include\Resources.h" />
     <ClInclude Include="..\src\Particle.h" />
+    <ClInclude Include="..\src\SettingsUi.h" />
     <ClInclude Include="..\src\VisualizerApp.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -8,6 +8,7 @@
 #include "cinder/gl/Batch.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Texture.h"
+#include "cinder/params/Params.h"
 #include "CiDSAPI.h"
 #include "Particle.h"
 
@@ -19,17 +20,26 @@ using namespace CinderDS;
 class VisualizerApp : public App
 {
 public:
-	void setup()	override;
-	void update()	override;
-	void draw()		override;
-	void cleanup()	override;
+	void setup()					override;
+	void keyDown(KeyEvent pEvent)	override;
+	void update()					override;
+	void draw()						override;
+	void cleanup()					override;
 
 private:
+	void setupGUI();
 	void setupDS();
 	void setupScene();
-	void setupSkybox();
-	void setupPointCloud();
+	void setupSkybox(string pTextureFile, pair<string, string> pShaders, pair<string,int> pSamplerUniform);
+	void setupPointCloud(pair<string, string> pShaders, vector<pair<string,int>> pSamplerUniforms);
 	void setupParticles();
+
+	void updatePointCloud();
+	void updateParticles();
+
+	void drawSkybox();
+	void drawPointCloud();
+	void drawParticles();
 
 	CinderDSRef		mDS;
 
@@ -57,5 +67,22 @@ private:
 	geom::BufferLayout		mParticlesInstanceAttribs;
 	gl::GlslProgRef			mParticlesShader;
 	gl::Texture2dRef		mParticlesTexture;
+
+	//GUI
+	params::InterfaceGlRef	mGUI;
+	bool					mDrawGUI;
+
+	int						mParamPointcloudStep;
+	float					mParamPointcloudSize,
+							mParamPointcloudSpecularPower,
+							mParamPointcloudSpecularStrength,
+							mParamPointcloudFresnelPower,
+							mParamPointcloudFresnelStrength,
+							mParamPointcloudReflectionStrength,
+							mParamPointcloudLightPositionX,
+							mParamPointcloudLightPositionY,
+							mParamPointcloudLightPositionZ;
+		
+
 };
 #endif
