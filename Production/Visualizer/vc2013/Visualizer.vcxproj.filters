@@ -1,3 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -12,6 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Source Files\blocks">
+      <UniqueIdentifier>{7ef1f72b-31f8-4940-b914-1cabff4b231b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\blocks\Cinder-DSAPI">
+      <UniqueIdentifier>{198c0ef3-49aa-44a9-a57c-c8074c5cb852}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shaders">
+      <UniqueIdentifier>{f42c1abf-9566-48c1-98ba-439406363b8b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\VisualizerApp.cpp">
@@ -23,15 +33,56 @@
     <ClInclude Include="..\include\Resources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClCompile Include="..\src\Particle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Resources.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\VisualizerApp.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Particle.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resources.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\assets\blur_u_fragment.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\blur_v_fragment.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\highpass_fragment.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\particle_fragment.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\particle_vertex.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\passthru_vertex.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\pointcloud_fragment.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\pointcloud_vertex.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\skybox_fragment.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\skybox_vertex.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
