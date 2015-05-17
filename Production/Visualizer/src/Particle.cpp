@@ -12,7 +12,7 @@ Particle::Particle(vec3 pPos)
 	mDirection = vec3(Rand::randFloat(-3.0f, 3.0f), -3.0f, Rand::randFloat(0.3f, 0.6f)); // change the direction of the particles.
 
 	Age = Rand::randInt(450, 550);
-	PSize = randFloat(0.5f, 2.5f);
+	PSize = randFloat(1.5f, 5.5f);
 }
 
 Particle::Particle(vec3 pPosition, vec2 pUV, float pSize) : PPosition(pPosition), PUV(pUV), PSize(pSize)
@@ -37,12 +37,9 @@ void Particle::Step(float pElapsed, const Perlin &pNoise, const vec3 &pRightDir)
 
 		PModelMatrix = mat4();
 		PModelMatrix = glm::translate(PModelMatrix, PPosition);
-
-		PModelMatrix = glm::rotate(PModelMatrix, 90.0f, pRightDir);
-		PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(0, 0, 1));
-
-		//PModelMatrix = glm::translate(PModelMatrix, vec3(0));
-		PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(0, 1, 0));
+		PModelMatrix = glm::translate(PModelMatrix, vec3(0,0,250));
 		PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(1, 0, 0));
+		PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(0, 1, 0));
+		PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(0, 0, 1));
 	}
 }

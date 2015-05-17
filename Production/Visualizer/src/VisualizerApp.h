@@ -32,7 +32,7 @@ private:
 	void setupScene();
 	void setupSkybox(string pTextureFile, pair<string, string> pShaders, pair<string,int> pSamplerUniform);
 	void setupPointCloud(pair<string, string> pShaders, vector<pair<string,int>> pSamplerUniforms);
-	void setupParticles();
+	void setupParticles(string pObjFile, string pTextureFile, pair<string, string> pShaders, vector<pair<string, int>> pSamplerUniforms);
 
 	void updatePointCloud();
 	void updateParticles();
@@ -61,6 +61,7 @@ private:
 	gl::Texture2dRef		mPointcloudTexture;
 
 	//Particles
+	Perlin					mParticlesPerlin;
 	vector<Particle>		mParticlesPoints;
 	gl::BatchRef			mParticlesBatch;
 	gl::VboRef				mParticlesInstanceData;
@@ -68,11 +69,21 @@ private:
 	gl::GlslProgRef			mParticlesShader;
 	gl::Texture2dRef		mParticlesTexture;
 
+	int						mNoOfFramesBeforeSpawingParticles,
+							mNoOfFramesElapsed,
+							mTimeToSpawnParticles,
+							mNumberOfParticlesSpawned,
+							mMaxParticleCount;
+
+	ivec3					mIterator,
+							mDecrementer;
+
 	//GUI
 	params::InterfaceGlRef	mGUI;
 	bool					mDrawGUI;
 
 	int						mParamPointcloudStep;
+
 	float					mParamPointcloudSize,
 							mParamPointcloudSpecularPower,
 							mParamPointcloudSpecularStrength,
@@ -81,8 +92,9 @@ private:
 							mParamPointcloudReflectionStrength,
 							mParamPointcloudLightPositionX,
 							mParamPointcloudLightPositionY,
-							mParamPointcloudLightPositionZ;
-		
-
+							mParamPointcloudLightPositionZ,
+							mParamParticlesSpecularPower,
+							mParamParticlesSpecularStrength,
+							mParamParticlesAmbientStrength;
 };
 #endif

@@ -4,7 +4,10 @@
 #pragma comment(lib, "DSAPI.dbg.lib")
 #endif
 #include "VisualizerApp.h"
+#include "cinder/ObjLoader.h"
+#include "cinder/TriMesh.h"
 
+#pragma region Constants
 const ivec2 DEPTH_SIZE(320, 240);
 const ivec2 RGB_SIZE(640, 480);
 
@@ -19,17 +22,20 @@ const string SPEC_STR_NAME =	"uSpecularStrength";
 const string FRES_POW_NAME =	"uFresnelPower";
 const string FRES_STR_NAME =	"uFresnelStrength";
 const string REFL_STR_NAME =	"uReflectionStrength";
+const string AMB_STR_NAME =		"uAmbientStrength";
 const string INST_POS_NAME =	"iPosition";
 const string INST_UV_NAME =		"iTexCoord0";
 const string INST_SIZE_NAME =	"iSize";
-
+const string INST_MODEL_NAME =	"iModelMatrix";
 
 const int CUBEMAP_UNIT =		0;
 const int TEXTURE_UNIT =		1;
+#pragma endregion
 
+#pragma region Core Methods
 void VisualizerApp::setup()
 {
-	getWindow()->setSize(1280, 720);
+	getWindow()->setSize(1920, 1080);
 	setupGUI();
 	setupDS();
 	setupScene();
@@ -39,6 +45,10 @@ void VisualizerApp::setup()
 
 	setupPointCloud(	{"shaders/pointcloud_vertex.glsl","shaders/pointcloud_fragment.glsl"},
 						{{ CUBEMAP_NAME, CUBEMAP_UNIT },{ TEXTURE_NAME, TEXTURE_UNIT }});
+
+	setupParticles("objects/rosepetal.obj", "textures/rosepetal.png",
+					{ "shaders/particle_vertex.glsl", "shaders/particle_fragment.glsl" },
+					{ {TEXTURE_NAME, TEXTURE_UNIT} });
 }
 
 void VisualizerApp::keyDown(KeyEvent pEvent)
@@ -72,8 +82,9 @@ void VisualizerApp::cleanup()
 {
 	mDS->stop();
 }
+#pragma endregion
 
-// Setup Methods
+#pragma region Setup Methods
 void VisualizerApp::setupDS()
 {
 	mDS = CinderDSAPI::create();
@@ -86,6 +97,7 @@ void VisualizerApp::setupDS()
 void VisualizerApp::setupGUI()
 {
 	mDrawGUI = true;
+	
 	mParamPointcloudStep = 2;
 	mParamPointcloudSize = 3.0f;
 	mParamPointcloudSpecularPower = 8.0f;
@@ -97,20 +109,31 @@ void VisualizerApp::setupGUI()
 	mParamPointcloudLightPositionY = 500.0f;
 	mParamPointcloudLightPositionZ = 0.0f;
 
-	mGUI = params::InterfaceGl::create("Settings", vec2(300, 300));
+	mParamParticlesSpecularPower = 4.0f;
+	mParamParticlesSpecularStrength = 2.0f;
+	mParamParticlesAmbientStrength = 0.4f;
+
+	mGUI = params::InterfaceGl::create("Settings", vec2(300, 400));
 	mGUI->addSeparator();
 	mGUI->addText("Point Cloud");
 	mGUI->addSeparator();
-	mGUI->addParam<int>("Resolution", &mParamPointcloudStep);
-	mGUI->addParam<float>("Point Size", &mParamPointcloudSize);
-	mGUI->addParam<float>("Highlight Size", &mParamPointcloudSpecularPower);
-	mGUI->addParam<float>("Highlight Strength", &mParamPointcloudSpecularStrength);
-	mGUI->addParam<float>("Rimlight Size", &mParamPointcloudFresnelPower);
-	mGUI->addParam<float>("Rimlight Strength", &mParamPointcloudFresnelStrength);
-	mGUI->addParam<float>("Reflection Strength", &mParamPointcloudReflectionStrength);
-	mGUI->addParam<float>("Light Position X", &mParamPointcloudLightPositionX);
-	mGUI->addParam<float>("Light Position Y", &mParamPointcloudLightPositionY);
-	mGUI->addParam<float>("Light Position Z", &mParamPointcloudLightPositionZ);
+	mGUI->addParam<int>("cloudRes", &mParamPointcloudStep).optionsStr("label='Resolution'");
+	mGUI->addParam<float>("cloudSize", &mParamPointcloudSize).optionsStr("label='Point Size'");
+	mGUI->addParam<float>("cloudSpecularPower", &mParamPointcloudSpecularPower).optionsStr("label='Highlight Size'");
+	mGUI->addParam<float>("cloudSpecularStrength", &mParamPointcloudSpecularStrength).optionsStr("label='Highlight Strength'");
+	mGUI->addParam<float>("cloudFresnelPower", &mParamPointcloudFresnelPower).optionsStr("label='Rimlight Size'");
+	mGUI->addParam<float>("cloudFresnelStrength", &mParamPointcloudFresnelStrength).optionsStr("label='Rimlight Strength'");
+	mGUI->addParam<float>("cloudReflectionStrength", &mParamPointcloudReflectionStrength).optionsStr("label='Reflection Strength'");
+	mGUI->addParam<float>("cloudLightX", &mParamPointcloudLightPositionX).optionsStr("label='Light Position X'");
+	mGUI->addParam<float>("cloudLightY", &mParamPointcloudLightPositionY).optionsStr("label='Light Position Y'");
+	mGUI->addParam<float>("cloudLightZ", &mParamPointcloudLightPositionZ).optionsStr("label='Light Position Z'");
+	mGUI->addSeparator();
+	mGUI->addText("Particles");
+	mGUI->addSeparator();
+	mGUI->addParam<float>("particlesSpecularPower", &mParamParticlesSpecularPower).optionsStr("label='Highlight Size'");
+	mGUI->addParam<float>("particlesSpecularStrength", &mParamParticlesSpecularStrength).optionsStr("label='Highlight Strength'");
+	mGUI->addParam<float>("particlesAmbientStrength", &mParamParticlesAmbientStrength).optionsStr("label='Ambient Strength'");
+
 }
 void VisualizerApp::setupScene()
 {
@@ -134,19 +157,19 @@ void VisualizerApp::setupPointCloud(pair<string, string> pShaders, vector<pair<s
 	mPointcloudPoints.push_back(Particle(vec3(0), vec2(0), mParamPointcloudSize));
 	mPointcloudInstanceData = gl::Vbo::create(GL_ARRAY_BUFFER, mParticlesPoints, GL_DYNAMIC_DRAW);
 	mPointcloudInstanceAttribs.append(geom::CUSTOM_0, 3, sizeof(Particle), offsetof(Particle, PPosition), 1);
-	mPointcloudInstanceAttribs.append(geom::CUSTOM_1, 2, sizeof(Particle), offsetof(Particle, PUV), 1);
-	mPointcloudInstanceAttribs.append(geom::CUSTOM_2, 1, sizeof(Particle), offsetof(Particle, PSize), 1);
+	mPointcloudInstanceAttribs.append(geom::CUSTOM_1, 1, sizeof(Particle), offsetof(Particle, PSize), 1);
+	mPointcloudInstanceAttribs.append(geom::CUSTOM_2, 2, sizeof(Particle), offsetof(Particle, PUV), 1);
+
 
 	gl::VboMeshRef pointcloudMesh = gl::VboMesh::create(geom::Sphere());
 	pointcloudMesh->appendVbo(mPointcloudInstanceAttribs, mPointcloudInstanceData);
 
 	mPointcloudShader = gl::GlslProg::create(loadAsset(pShaders.first), loadAsset(pShaders.second));
-	mPointcloudBatch = gl::Batch::create(	pointcloudMesh,
-											mPointcloudShader,
+	mPointcloudBatch = gl::Batch::create(	pointcloudMesh, mPointcloudShader,
 											{
 												{ geom::CUSTOM_0, INST_POS_NAME },
-												{ geom::CUSTOM_1, INST_UV_NAME },
-												{ geom::CUSTOM_2, INST_SIZE_NAME }
+												{ geom::CUSTOM_1, INST_SIZE_NAME },
+												{ geom::CUSTOM_2, INST_UV_NAME },
 											});
 
 	for (auto u : pSamplerUniforms)
@@ -155,12 +178,46 @@ void VisualizerApp::setupPointCloud(pair<string, string> pShaders, vector<pair<s
 	mPointcloudTexture = gl::Texture2d::create(RGB_SIZE.x, RGB_SIZE.y);
 }
 
-void VisualizerApp::setupParticles()
+void VisualizerApp::setupParticles(string pObjFile, string pTextureFile, pair<string, string> pShaders, vector<pair<string,int>> pSamplerUniforms)
 {
+	mNoOfFramesBeforeSpawingParticles = 200;
+	mNoOfFramesElapsed = 200;
+	mNumberOfParticlesSpawned = 0;
+	mTimeToSpawnParticles = 0;
+	mMaxParticleCount = 5000;
+	mIterator = ivec3();
+	mDecrementer = ivec3();
+	mParticlesPerlin = Perlin();
 
+	ObjLoader rawMesh(loadAsset(pObjFile));
+	TriMeshRef meshSrc = TriMesh::create(rawMesh);
+	if (!rawMesh.getAvailableAttribs().count(geom::NORMAL))
+		meshSrc->recalculateNormals();
+
+	gl::VboMeshRef particleMesh = gl::VboMesh::create(*meshSrc);
+	
+	mParticlesPoints.push_back(Particle(vec3(0)));
+	mParticlesInstanceData = gl::Vbo::create(GL_ARRAY_BUFFER, mParticlesPoints, GL_DYNAMIC_DRAW);
+	mParticlesInstanceAttribs.append(geom::CUSTOM_0, 3, sizeof(Particle), offsetof(Particle, PPosition), 1);
+	mParticlesInstanceAttribs.append(geom::CUSTOM_1, 1, sizeof(Particle), offsetof(Particle, PSize), 1);
+	mParticlesInstanceAttribs.append(geom::CUSTOM_3, 16, sizeof(Particle), offsetof(Particle, PModelMatrix), 1);
+	particleMesh->appendVbo(mParticlesInstanceAttribs, mParticlesInstanceData);
+	mParticlesShader = gl::GlslProg::create(loadAsset(pShaders.first), loadAsset(pShaders.second));
+	mParticlesBatch = gl::Batch::create(particleMesh, mParticlesShader,
+										{
+											{ geom::CUSTOM_0, INST_POS_NAME },
+											{ geom::CUSTOM_1, INST_SIZE_NAME },
+											{ geom::CUSTOM_3, INST_MODEL_NAME }
+										});
+
+	for (auto u : pSamplerUniforms)
+		mParticlesBatch->getGlslProg()->uniform(u.first, u.second);
+
+	mParticlesTexture = gl::Texture2d::create(loadImage(loadAsset(pTextureFile)));
 }
+#pragma endregion
 
-// Update Methods
+#pragma region Update Methods
 void VisualizerApp::updatePointCloud()
 {
 	mDS->update();
@@ -178,7 +235,7 @@ void VisualizerApp::updatePointCloud()
 			if (x % mParamPointcloudStep == 0 && y % mParamPointcloudStep == 0)
 			{
 				float z = (float)depthIter.v();
-				if (z > 100.0f && z < 1500.0f)
+				if (z > 0.0f && z < 1500.0f)
 				{
 					vec3 worldPosition = mDS->getDepthSpacePoint(static_cast<float>(x), static_cast<float>(y), z);
 					vec2 texCoord = mDS->getColorCoordsFromDepthSpace(worldPosition);
@@ -193,10 +250,48 @@ void VisualizerApp::updatePointCloud()
 
 void VisualizerApp::updateParticles()
 {
+	mTimeToSpawnParticles--;
 
+	if (mTimeToSpawnParticles <= 0)
+	{
+		if (mParticlesPoints.size()<mMaxParticleCount)
+		{
+			int noOfParticlesPerSpawn = 10;
+			int TotalNumberOfParticles = 500;
+			for (int i = 0; i < noOfParticlesPerSpawn; i++)
+				mParticlesPoints.push_back(Particle(vec3(Rand::randFloat(-50.0f, 50.0f), Rand::randFloat(70.0f, 30.0f), 100)));
+
+			mNumberOfParticlesSpawned = mNumberOfParticlesSpawned + 2 * noOfParticlesPerSpawn;
+			if (mNumberOfParticlesSpawned > TotalNumberOfParticles)
+			{
+				//reset after spawning
+				mNumberOfParticlesSpawned = 0;
+				mIterator.x = Rand::randInt(-500, -300);
+				mIterator.z = Rand::randInt(300, 700);
+				mDecrementer.x = Rand::randInt(700, 1000);
+				mDecrementer.z = Rand::randInt(400, 500);
+				mTimeToSpawnParticles = Rand::randInt(500, 550);
+			}
+		}
+	}
+
+	float elapsedTime = (float)getElapsedSeconds();
+	vec3 billboardUpVector, billboardRightVector;
+	mCamera.getBillboardVectors(&billboardRightVector, &billboardUpVector);
+	for (auto pit = mParticlesPoints.begin(); pit != mParticlesPoints.end();)
+	{
+		pit->Step(elapsedTime, mParticlesPerlin, billboardRightVector);
+		if (pit->Age <= 0)
+			pit = mParticlesPoints.erase(pit);
+		else
+			++pit;
+	}
+
+	mParticlesInstanceData->bufferData(mParticlesPoints.size()*sizeof(Particle), mParticlesPoints.data(), GL_DYNAMIC_DRAW);
 }
+#pragma endregion
 
-// Draw Methods
+#pragma region Draw Methods
 void VisualizerApp::drawSkybox()
 {
 	glDisable(GL_DEPTH_TEST);
@@ -213,7 +308,6 @@ void VisualizerApp::drawPointCloud()
 {
 	mSkyboxTexture->bind(CUBEMAP_UNIT);
 	mPointcloudTexture->bind(TEXTURE_UNIT);
-	mPointcloudBatch->getGlslProg()->uniform(TEXTURE_NAME, 1);
 	mPointcloudBatch->getGlslProg()->uniform(LIGHT_POS_NAME, vec3(mParamPointcloudLightPositionX, mParamPointcloudLightPositionY, mParamPointcloudLightPositionZ));
 	mPointcloudBatch->getGlslProg()->uniform(VIEW_DIR_NAME, mCamera.getViewDirection());
 	mPointcloudBatch->getGlslProg()->uniform(SPEC_POW_NAME, mParamPointcloudSpecularPower);
@@ -228,7 +322,16 @@ void VisualizerApp::drawPointCloud()
 
 void VisualizerApp::drawParticles()
 {
-
+	gl::pushMatrices();
+	mParticlesTexture->bind(TEXTURE_UNIT);
+	mParticlesBatch->getGlslProg()->uniform(LIGHT_POS_NAME, vec3(mParamPointcloudLightPositionX, mParamPointcloudLightPositionY, mParamPointcloudLightPositionZ));
+	mParticlesBatch->getGlslProg()->uniform(VIEW_DIR_NAME, mCamera.getViewDirection());
+	mParticlesBatch->getGlslProg()->uniform(SPEC_POW_NAME, mParamParticlesSpecularPower);
+	mParticlesBatch->getGlslProg()->uniform(SPEC_STR_NAME, mParamParticlesSpecularStrength);
+	mParticlesBatch->getGlslProg()->uniform(AMB_STR_NAME, mParamParticlesAmbientStrength);
+	mParticlesBatch->drawInstanced(mParticlesPoints.size());
+	mParticlesTexture->unbind();
 }
+#pragma endregion
 
 CINDER_APP( VisualizerApp, RendererGl )

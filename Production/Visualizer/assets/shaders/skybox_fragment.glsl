@@ -1,5 +1,5 @@
 #version 150
-uniform samplerCube uSamplerCube;
+uniform samplerCube uCubemapSampler;
 
 in vec3 LookupVector;
 
@@ -7,5 +7,5 @@ out vec4 FragColor;
 
 void main()
 {
-	FragColor = texture(uSamplerCube, LookupVector);
+	FragColor = texture(uCubemapSampler, LookupVector);
 }
