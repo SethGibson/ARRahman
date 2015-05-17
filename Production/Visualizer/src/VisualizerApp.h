@@ -6,6 +6,7 @@
 #include "cinder/CameraUi.h"
 #include "cinder/gl/gl.h"
 #include "cinder/gl/Batch.h"
+#include "cinder/gl/Fbo.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/params/Params.h"
@@ -33,13 +34,16 @@ private:
 	void setupSkybox(string pTextureFile, pair<string, string> pShaders, pair<string,int> pSamplerUniform);
 	void setupPointCloud(pair<string, string> pShaders, vector<pair<string,int>> pSamplerUniforms);
 	void setupParticles(string pObjFile, string pTextureFile, pair<string, string> pShaders, vector<pair<string, int>> pSamplerUniforms);
+	void setupFBOs();
 
 	void updatePointCloud();
 	void updateParticles();
+	void updateFBOs();
 
 	void drawSkybox();
 	void drawPointCloud();
 	void drawParticles();
+	void drawFBO();
 
 	CinderDSRef		mDS;
 
@@ -66,7 +70,16 @@ private:
 	gl::BatchRef			mParticlesBatch;
 	gl::VboRef				mParticlesInstanceData;
 	geom::BufferLayout		mParticlesInstanceAttribs;
-	gl::GlslProgRef			mParticlesShader;
+	gl::GlslProgRef			mParticlesShader,
+							mParticlesHighpassShader,
+							mParticlesBlurUShader,
+							mParticlesBlurVShader;
+
+	gl::FboRef				mParticlesBaseRT,
+							mParticlesHighPassRT,
+							mParticlesBlurURT,
+							mParticlesBlurVRT;
+
 	gl::Texture2dRef		mParticlesTexture;
 
 	int						mNoOfFramesBeforeSpawingParticles,
@@ -95,6 +108,8 @@ private:
 							mParamPointcloudLightPositionZ,
 							mParamParticlesSpecularPower,
 							mParamParticlesSpecularStrength,
-							mParamParticlesAmbientStrength;
+							mParamParticlesAmbientStrength,
+							mParamParticlesBlurUStep,
+							mParamParticlesBlurVStep;
 };
 #endif

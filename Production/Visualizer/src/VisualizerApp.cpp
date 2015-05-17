@@ -10,6 +10,8 @@
 #pragma region Constants
 const ivec2 DEPTH_SIZE(320, 240);
 const ivec2 RGB_SIZE(640, 480);
+const ivec2 WINDOW_SIZE(1280, 720);
+const ivec2 VP_SIZE(1280, 720);
 
 const string CUBEMAP_NAME =		"uCubemapSampler";
 const string TEXTURE_NAME =		"uTextureSampler";
@@ -23,10 +25,12 @@ const string FRES_POW_NAME =	"uFresnelPower";
 const string FRES_STR_NAME =	"uFresnelStrength";
 const string REFL_STR_NAME =	"uReflectionStrength";
 const string AMB_STR_NAME =		"uAmbientStrength";
+const string IMAGE_SIZE_NAME =	"uImageSize";
 const string INST_POS_NAME =	"iPosition";
 const string INST_UV_NAME =		"iTexCoord0";
 const string INST_SIZE_NAME =	"iSize";
 const string INST_MODEL_NAME =	"iModelMatrix";
+
 
 const int CUBEMAP_UNIT =		0;
 const int TEXTURE_UNIT =		1;
@@ -35,7 +39,7 @@ const int TEXTURE_UNIT =		1;
 #pragma region Core Methods
 void VisualizerApp::setup()
 {
-	getWindow()->setSize(1920, 1080);
+	getWindow()->setSize(WINDOW_SIZE);
 	setupGUI();
 	setupDS();
 	setupScene();
@@ -49,6 +53,8 @@ void VisualizerApp::setup()
 	setupParticles("objects/rosepetal.obj", "textures/rosepetal.png",
 					{ "shaders/particle_vertex.glsl", "shaders/particle_fragment.glsl" },
 					{ {TEXTURE_NAME, TEXTURE_UNIT} });
+	
+	setupFBOs();
 }
 
 void VisualizerApp::keyDown(KeyEvent pEvent)
@@ -60,6 +66,7 @@ void VisualizerApp::update()
 {
 	updatePointCloud();
 	updateParticles();
+	updateFBOs();
 }
 
 void VisualizerApp::draw()
@@ -70,12 +77,18 @@ void VisualizerApp::draw()
 	gl::setMatrices(mCamera);
 	drawSkybox();
 	drawPointCloud();
-	drawParticles();
+	//drawParticles();
 
 	//draw 2d
+	/*
 	gl::setMatricesWindow(getWindowSize());
+	drawFBO();
 	if (mDrawGUI)
 		mGUI->draw();
+	*/
+	gl::setMatricesWindow(getWindowSize());
+	//drawFBO();
+	gl::draw(mParticlesBlurVRT->getColorTexture(), vec2(0));
 }
 
 void VisualizerApp::cleanup()
@@ -112,6 +125,8 @@ void VisualizerApp::setupGUI()
 	mParamParticlesSpecularPower = 4.0f;
 	mParamParticlesSpecularStrength = 2.0f;
 	mParamParticlesAmbientStrength = 0.4f;
+	mParamParticlesBlurUStep = 512.0f;
+	mParamParticlesBlurVStep = 512.0f;
 
 	mGUI = params::InterfaceGl::create("Settings", vec2(300, 400));
 	mGUI->addSeparator();
@@ -133,6 +148,8 @@ void VisualizerApp::setupGUI()
 	mGUI->addParam<float>("particlesSpecularPower", &mParamParticlesSpecularPower).optionsStr("label='Highlight Size'");
 	mGUI->addParam<float>("particlesSpecularStrength", &mParamParticlesSpecularStrength).optionsStr("label='Highlight Strength'");
 	mGUI->addParam<float>("particlesAmbientStrength", &mParamParticlesAmbientStrength).optionsStr("label='Ambient Strength'");
+	mGUI->addParam<float>("particlesBlurUStep", &mParamParticlesBlurUStep).optionsStr("label='H Blur Width'");
+	mGUI->addParam<float>("particlesBlurVStep", &mParamParticlesBlurVStep).optionsStr("label='V Blur Width'");
 
 }
 void VisualizerApp::setupScene()
@@ -215,6 +232,27 @@ void VisualizerApp::setupParticles(string pObjFile, string pTextureFile, pair<st
 
 	mParticlesTexture = gl::Texture2d::create(loadImage(loadAsset(pTextureFile)));
 }
+
+void VisualizerApp::setupFBOs()
+{
+	mParticlesBaseRT = gl::Fbo::create(VP_SIZE.x, VP_SIZE.y, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA32F).dataType(GL_FLOAT)));
+	mParticlesHighPassRT = gl::Fbo::create(VP_SIZE.x, VP_SIZE.y, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA32F).dataType(GL_FLOAT)));
+	mParticlesBlurURT = gl::Fbo::create(VP_SIZE.x, VP_SIZE.y, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA32F).dataType(GL_FLOAT)));
+	mParticlesBlurVRT = gl::Fbo::create(VP_SIZE.x, VP_SIZE.y, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA32F).dataType(GL_FLOAT)));
+
+	mParticlesHighpassShader = gl::GlslProg::create(loadAsset("shaders/passthru_vertex.glsl"), loadAsset("shaders/highpass_fragment.glsl"));
+	mParticlesHighpassShader->uniform(TEXTURE_NAME, TEXTURE_UNIT);
+
+	mParticlesBlurUShader = gl::GlslProg::create(loadAsset("shaders/passthru_vertex.glsl"), loadAsset("shaders/blur_u_fragment.glsl"));
+	mParticlesBlurUShader->uniform(TEXTURE_NAME, TEXTURE_UNIT);
+	mParticlesBlurUShader->uniform(IMAGE_SIZE_NAME, vec2(1280,720));
+
+
+	mParticlesBlurVShader = gl::GlslProg::create(loadAsset("shaders/passthru_vertex.glsl"), loadAsset("shaders/blur_v_fragment.glsl"));
+	mParticlesBlurVShader->uniform(TEXTURE_NAME, TEXTURE_UNIT);
+	mParticlesBlurVShader->uniform(IMAGE_SIZE_NAME, vec2(1280, 720));
+}
+
 #pragma endregion
 
 #pragma region Update Methods
@@ -289,6 +327,49 @@ void VisualizerApp::updateParticles()
 
 	mParticlesInstanceData->bufferData(mParticlesPoints.size()*sizeof(Particle), mParticlesPoints.data(), GL_DYNAMIC_DRAW);
 }
+
+void VisualizerApp::updateFBOs()
+{
+	Rectf windowRect({ vec2(), VP_SIZE });
+	gl::ScopedViewport renderView(VP_SIZE);
+
+	mParticlesBaseRT->bindFramebuffer();
+	gl::setMatrices(mCamera);
+	gl::clear(ColorA::zero());
+	drawParticles();
+	mParticlesBaseRT->unbindFramebuffer();
+
+	mParticlesHighPassRT->bindFramebuffer();
+	mParticlesBaseRT->bindTexture(TEXTURE_UNIT);
+	mParticlesHighpassShader->bind();
+	gl::setMatricesWindow(getWindowSize());
+	gl::clear(ColorA::zero());
+	gl::color(ColorA::white());
+	gl::drawSolidRect(windowRect);
+	mParticlesBaseRT->unbindTexture(TEXTURE_UNIT);
+	mParticlesHighPassRT->unbindFramebuffer();
+
+	mParticlesBlurURT->bindFramebuffer();
+	mParticlesHighPassRT->bindTexture(TEXTURE_UNIT);
+	mParticlesBlurUShader->bind();
+	gl::setMatricesWindow(getWindowSize());
+	gl::clear(ColorA::zero());
+	gl::color(ColorA::white());
+	gl::drawSolidRect(windowRect);
+	mParticlesHighPassRT->unbindTexture(TEXTURE_UNIT);
+	mParticlesBlurURT->unbindFramebuffer();
+
+	mParticlesBlurVRT->bindFramebuffer();
+	mParticlesBlurURT->bindTexture(TEXTURE_UNIT);
+	mParticlesBlurVShader->bind();
+	gl::setMatricesWindow(getWindowSize());
+	gl::clear(ColorA::zero());
+	gl::color(ColorA::white());
+	gl::drawSolidRect(windowRect);
+	mParticlesBlurURT->unbindTexture(TEXTURE_UNIT);
+	mParticlesBlurVRT->unbindFramebuffer();
+}
+
 #pragma endregion
 
 #pragma region Draw Methods
@@ -306,6 +387,7 @@ void VisualizerApp::drawSkybox()
 
 void VisualizerApp::drawPointCloud()
 {
+	gl::enableDepthRead();
 	mSkyboxTexture->bind(CUBEMAP_UNIT);
 	mPointcloudTexture->bind(TEXTURE_UNIT);
 	mPointcloudBatch->getGlslProg()->uniform(LIGHT_POS_NAME, vec3(mParamPointcloudLightPositionX, mParamPointcloudLightPositionY, mParamPointcloudLightPositionZ));
@@ -318,11 +400,12 @@ void VisualizerApp::drawPointCloud()
 	mPointcloudBatch->drawInstanced(mPointcloudPoints.size());
 	mPointcloudTexture->unbind();
 	mSkyboxTexture->unbind();
+	gl::disableDepthRead();
 }
 
 void VisualizerApp::drawParticles()
 {
-	gl::pushMatrices();
+	gl::enableDepthRead();
 	mParticlesTexture->bind(TEXTURE_UNIT);
 	mParticlesBatch->getGlslProg()->uniform(LIGHT_POS_NAME, vec3(mParamPointcloudLightPositionX, mParamPointcloudLightPositionY, mParamPointcloudLightPositionZ));
 	mParticlesBatch->getGlslProg()->uniform(VIEW_DIR_NAME, mCamera.getViewDirection());
@@ -331,6 +414,16 @@ void VisualizerApp::drawParticles()
 	mParticlesBatch->getGlslProg()->uniform(AMB_STR_NAME, mParamParticlesAmbientStrength);
 	mParticlesBatch->drawInstanced(mParticlesPoints.size());
 	mParticlesTexture->unbind();
+	gl::disableDepthRead();
+}
+
+void VisualizerApp::drawFBO()
+{
+	gl::disableDepthRead();
+	gl::enableAdditiveBlending();
+	gl::draw(mParticlesBlurVRT->getColorTexture(), Rectf({vec2(0), vec2(WINDOW_SIZE)}));
+	gl::disableAlphaBlending();
+	gl::enableDepthRead();
 }
 #pragma endregion
 
