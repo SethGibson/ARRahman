@@ -69,9 +69,6 @@
     <None Include="..\assets\shaders\particle_vertex.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="..\assets\shaders\passthru_vertex.glsl">
-      <Filter>Source Files\shaders</Filter>
-    </None>
     <None Include="..\assets\shaders\pointcloud_fragment.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>

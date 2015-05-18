@@ -104,7 +104,6 @@
     <None Include="..\assets\shaders\blur_vertex.glsl" />
     <None Include="..\assets\shaders\particle_fragment.glsl" />
     <None Include="..\assets\shaders\particle_vertex.glsl" />
-    <None Include="..\assets\shaders\passthru_vertex.glsl" />
     <None Include="..\assets\shaders\pointcloud_fragment.glsl" />
     <None Include="..\assets\shaders\pointcloud_vertex.glsl" />
     <None Include="..\assets\shaders\skybox_fragment.glsl" />
