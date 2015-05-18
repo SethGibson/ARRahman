@@ -1,7 +1,7 @@
 #ifndef _DEBUG
-#pragma comment(lib, "DSAPI.lib")
+#pragma comment(lib, "DSAPI32.lib")
 #else
-#pragma comment(lib, "DSAPI.dbg.lib")
+#pragma comment(lib, "DSAPI32.dbg.lib")
 #endif
 #include "VisualizerApp.h"
 #include "cinder/ObjLoader.h"
