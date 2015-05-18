@@ -33,7 +33,6 @@ const string INST_UV_NAME =			"iTexCoord0";
 const string INST_SIZE_NAME =		"iSize";
 const string INST_MODEL_NAME =		"iModelMatrix";
 
-
 const int CUBEMAP_UNIT =		0;
 const int TEXTURE_UNIT =		1;
 #pragma endregion
