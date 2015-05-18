@@ -75,9 +75,12 @@ void VisualizerApp::draw()
 {
 	gl::clear( Color( 0, 0, 0 ) ); 
 
+	//draw bg
+	gl::setMatricesWindow(getWindowSize());
+	drawSkybox();
+
 	//draw 3d
 	gl::setMatrices(mCamera);
-	drawSkybox();
 	drawPointCloud();
 	drawParticles();
 
@@ -114,7 +117,7 @@ void VisualizerApp::setupGUI()
 	mParamPointcloudSize = 3.0f;
 	mParamPointcloudSpecularPower = 8.0f;
 	mParamPointcloudSpecularStrength = 0.5f;
-	mParamPointcloudFresnelPower = 8.0f;
+	mParamPointcloudFresnelPower = 1.0f;
 	mParamPointcloudFresnelStrength = 1.0f;
 	mParamPointcloudReflectionStrength = 1.0f;
 	mParamPointcloudLightPositionX = 0.0f;
@@ -166,10 +169,13 @@ void VisualizerApp::setupScene()
 
 void VisualizerApp::setupSkybox(string pTextureFile, pair<string,string> pShaders, pair<string, int> pSamplerUniform)
 {
+	/*
 	mSkyboxTexture = gl::TextureCubeMap::create(loadImage(loadAsset(pTextureFile)), gl::TextureCubeMap::Format().mipmap().internalFormat(GL_RGBA8));
 	mSkyboxShader = gl::GlslProg::create(loadAsset(pShaders.first), loadAsset(pShaders.second));
 	mSkyboxBatch = gl::Batch::create(geom::Cube(), mSkyboxShader);
 	mSkyboxBatch->getGlslProg()->uniform(pSamplerUniform.first, pSamplerUniform.second);
+	*/
+	mSkyboxTexture2D = gl::Texture2d::create(loadImage(loadAsset("textures/test_bg.png")));
 }
 
 void VisualizerApp::setupPointCloud(pair<string, string> pShaders, vector<pair<string,int>> pSamplerUniforms)
@@ -364,6 +370,10 @@ void VisualizerApp::updateFBOs()
 #pragma region Draw Methods
 void VisualizerApp::drawSkybox()
 {
+	gl::disableDepthRead();
+	gl::draw(mSkyboxTexture2D, vec2(0));
+	gl::enableDepthRead();
+	/*
 	glDisable(GL_DEPTH_TEST);
 	gl::pushMatrices();
 	gl::scale(vec3(1, -1, 1));
@@ -372,15 +382,16 @@ void VisualizerApp::drawSkybox()
 	mSkyboxTexture->unbind();
 	gl::popMatrices();
 	glEnable(GL_DEPTH_TEST);
+	*/
 }
 
 void VisualizerApp::drawPointCloud()
 {
 	gl::enableDepthRead();
-	mSkyboxTexture->bind(CUBEMAP_UNIT);
+	mSkyboxTexture2D->bind(CUBEMAP_UNIT);
 	mPointcloudTexture->bind(TEXTURE_UNIT);
 	mPointcloudBatch->getGlslProg()->uniform(LIGHT_POS_NAME, vec3(mParamPointcloudLightPositionX, mParamPointcloudLightPositionY, mParamPointcloudLightPositionZ));
-	mPointcloudBatch->getGlslProg()->uniform(VIEW_DIR_NAME, mCamera.getViewDirection());
+	mPointcloudBatch->getGlslProg()->uniform(VIEW_DIR_NAME, mCamera.getEyePoint());
 	mPointcloudBatch->getGlslProg()->uniform(SPEC_POW_NAME, mParamPointcloudSpecularPower);
 	mPointcloudBatch->getGlslProg()->uniform(SPEC_STR_NAME, mParamPointcloudSpecularStrength);
 	mPointcloudBatch->getGlslProg()->uniform(FRES_POW_NAME, mParamPointcloudFresnelPower);
@@ -388,7 +399,7 @@ void VisualizerApp::drawPointCloud()
 	mPointcloudBatch->getGlslProg()->uniform(REFL_STR_NAME, mParamPointcloudReflectionStrength);
 	mPointcloudBatch->drawInstanced(mPointcloudPoints.size());
 	mPointcloudTexture->unbind();
-	mSkyboxTexture->unbind();
+	mSkyboxTexture2D->unbind();
 	gl::disableDepthRead();
 }
 

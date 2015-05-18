@@ -52,9 +52,10 @@ private:
 	CameraUi				mCameraUi;
 
 	//Skybox
-	gl::BatchRef			mSkyboxBatch;
-	gl::GlslProgRef			mSkyboxShader;
-	gl::TextureCubeMapRef	mSkyboxTexture;
+	//gl::BatchRef			mSkyboxBatch;
+	//gl::GlslProgRef			mSkyboxShader;
+	//gl::TextureCubeMapRef	mSkyboxTexture;
+	gl::Texture2dRef		mSkyboxTexture2D;
 
 	//Point Cloud
 	vector<Particle>		mPointcloudPoints;

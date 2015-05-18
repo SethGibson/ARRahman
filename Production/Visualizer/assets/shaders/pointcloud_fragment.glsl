@@ -1,5 +1,5 @@
 #version 150
-uniform samplerCube	uCubemapSampler;
+uniform sampler2D	uCubemapSampler;
 uniform sampler2D	uTextureSampler;
 uniform vec3		uLightPosition;
 uniform vec3		uViewDirection;
@@ -14,16 +14,24 @@ in vec3				Normal;
 in vec3				LookupVector;
 in vec2				UV;
 
+in vec3				ViewNormal;
+in vec3				ViewPos;
+
 out vec4			FragColor;
 void main()
 {
 	vec3 normal = normalize(Normal);
 	vec3 lightDir = normalize(uLightPosition-FragPos.xyz);
-	vec3 viewDir = normalize(uViewDirection);
 	vec3 lightReflect = normalize(reflect(-lightDir, normal));
-	vec3 viewReflect = normalize(reflect(viewDir, normal));
 
-	vec4 reflContrib = texture(uCubemapSampler, viewReflect);
+	vec3 viewDir = normalize(uViewDirection-FragPos.xyz);
+	vec3 viewReflect = normalize(reflect(viewDir, normal));
+	vec2 viewUV = vec2((viewReflect.x/viewReflect.z+1)*0.5,(viewReflect.y/viewReflect.z+1)*0.5);
+
+	vec3 viewNormal = normalize(ViewNormal);
+	vec3 viewPos = normalize(-ViewPos);
+
+	vec4 reflContrib = texture(uCubemapSampler, viewUV);
 	reflContrib *= uReflectionStrength;
 	vec4 texContrib = texture(uTextureSampler, vec2(UV.x,1-UV.y));
 	
@@ -31,9 +39,9 @@ void main()
 	
 	float specContrib = max(pow(dot(viewDir,lightReflect),uSpecularPower),0.0);
 	specContrib *= uSpecularStrength;
+
+	float fresContrib = 1.0-pow(max(dot(viewPos,viewNormal), 0.0), 1.0/uFresnelPower);
 	
-	float fresContrib = 1.0 - (max(pow(dot(normal,viewDir),uFresnelPower),0.0));
-	fresContrib *= uFresnelStrength;
 	
 	FragColor = texContrib*diffContrib+specContrib+(reflContrib*fresContrib);
 }

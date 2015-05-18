@@ -15,6 +15,9 @@ out vec3		Normal;
 out vec3		LookupVector;
 out vec2		UV;
 
+out vec3		ViewNormal;
+out vec3		ViewPos;
+
 void main()
 {
 	vec3 finalPosition = ciPosition.xyz*iSize+iPosition;
@@ -24,6 +27,9 @@ void main()
 	Normal = vec3(normalMatrix*vec4(ciNormal,0.0));
 	LookupVector = vec3(ciModelMatrix*vec4(finalPosition,1.0));
 	UV = iTexCoord0;
+
+	ViewNormal = mat3(ciViewMatrix)*ciNormal;
+	ViewPos = vec3(ciViewMatrix*vec4(finalPosition,1.0));
 
 	gl_Position = ciProjectionMatrix*ciViewMatrix*ciModelMatrix*vec4(finalPosition,1.0);
 }
