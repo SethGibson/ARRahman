@@ -177,12 +177,6 @@ void VisualizerApp::setupScene()
 
 void VisualizerApp::setupSkybox(string pTextureFile, pair<string,string> pShaders, pair<string, int> pSamplerUniform)
 {
-	/*
-	mSkyboxTexture = gl::TextureCubeMap::create(loadImage(loadAsset(pTextureFile)), gl::TextureCubeMap::Format().mipmap().internalFormat(GL_RGBA8));
-	mSkyboxShader = gl::GlslProg::create(loadAsset(pShaders.first), loadAsset(pShaders.second));
-	mSkyboxBatch = gl::Batch::create(geom::Cube(), mSkyboxShader);
-	mSkyboxBatch->getGlslProg()->uniform(pSamplerUniform.first, pSamplerUniform.second);
-	*/
 	mSkyboxTexture2D = gl::Texture2d::create(loadImage(loadAsset("textures/test_bg.png")));
 }
 
@@ -260,6 +254,10 @@ void VisualizerApp::setupFBOs()
 	mParticlesBlurShader->uniform(TEXTURE_NAME, TEXTURE_UNIT);
 }
 
+void VisualizerApp::setupPhysics()
+{
+	mPhysicsContext = bullet::Context::create(bullet::Context::Format().drawDebug(true).createDebugRenderer(true));
+}
 #pragma endregion
 
 #pragma region Update Methods
@@ -379,18 +377,8 @@ void VisualizerApp::updateFBOs()
 void VisualizerApp::drawSkybox()
 {
 	gl::disableDepthRead();
-	gl::draw(mSkyboxTexture2D, vec2(0));
+	gl::draw(mSkyboxTexture2D, Rectf({ vec2(0), getWindowSize() }));
 	gl::enableDepthRead();
-	/*
-	glDisable(GL_DEPTH_TEST);
-	gl::pushMatrices();
-	gl::scale(vec3(1, -1, 1));
-	mSkyboxTexture->bind(CUBEMAP_UNIT);
-	mSkyboxBatch->draw();
-	mSkyboxTexture->unbind();
-	gl::popMatrices();
-	glEnable(GL_DEPTH_TEST);
-	*/
 }
 
 void VisualizerApp::drawPointCloud()
