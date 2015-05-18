@@ -53,9 +53,7 @@ void VisualizerApp::setup()
 	setupGUI();
 	setupDS();
 	setupScene();
-	setupSkybox(	"textures/ph_cubemap.png",
-					{"shaders/skybox_vertex.glsl","shaders/skybox_fragment.glsl"},
-					{CUBEMAP_NAME,CUBEMAP_UNIT});
+	setupSkybox("movies/Aa.mov");
 
 	setupPointCloud(	{"shaders/pointcloud_vertex.glsl","shaders/pointcloud_fragment.glsl"},
 						{{ CUBEMAP_NAME, CUBEMAP_UNIT },{ TEXTURE_NAME, TEXTURE_UNIT }});
@@ -74,6 +72,7 @@ void VisualizerApp::keyDown(KeyEvent pEvent)
 }
 void VisualizerApp::update()
 {
+	updateMovie();
 	updatePointCloud();
 	updateParticles();
 	updateFBOs();
@@ -175,9 +174,21 @@ void VisualizerApp::setupScene()
 	mCameraUi = CameraUi(&mCamera, getWindow());
 }
 
-void VisualizerApp::setupSkybox(string pTextureFile, pair<string,string> pShaders, pair<string, int> pSamplerUniform)
+void VisualizerApp::setupSkybox(string pMovieFile)
 {
-	mSkyboxTexture2D = gl::Texture2d::create(loadImage(loadAsset("textures/test_bg.png")));
+	try
+	{
+		mBackgroundPlayer = qtime::MovieGl::create(loadAsset(pMovieFile));
+		mBackgroundPlayer ->setLoop();
+		mBackgroundPlayer->play();
+	}
+	catch (ci::Exception &exc)
+	{
+		console() << "Exception caught trying to load the movie from path: " << pMovieFile << ", what: " << exc.what() << std::endl;
+		mBackgroundPlayer.reset();
+	}
+	mBackgroundTexture.reset();
+	mBackgroundReflectTexture = gl::Texture2d::create(loadImage(loadAsset("textures/test_bg.png")));
 }
 
 void VisualizerApp::setupPointCloud(pair<string, string> pShaders, vector<pair<string,int>> pSamplerUniforms)
@@ -371,20 +382,28 @@ void VisualizerApp::updateFBOs()
 	mParticlesBlurVRT->unbindFramebuffer();
 }
 
+void VisualizerApp::updateMovie()
+{
+	if (mBackgroundPlayer)
+		mBackgroundTexture = mBackgroundPlayer->getTexture();
+}
+
 #pragma endregion
 
 #pragma region Draw Methods
 void VisualizerApp::drawSkybox()
 {
 	gl::disableDepthRead();
-	gl::draw(mSkyboxTexture2D, Rectf({ vec2(0), getWindowSize() }));
+	if (mBackgroundTexture)
+		gl::draw(mBackgroundTexture, Rectf({vec2(0), getWindowSize()}));
 	gl::enableDepthRead();
 }
 
 void VisualizerApp::drawPointCloud()
 {
 	gl::enableDepthRead();
-	mSkyboxTexture2D->bind(CUBEMAP_UNIT);
+	mBackgroundReflectTexture->bind(CUBEMAP_UNIT);
+
 	mPointcloudTexture->bind(TEXTURE_UNIT);
 	mPointcloudBatch->getGlslProg()->uniform(LIGHT_POS_NAME, vec3(mParamPointcloudLightPositionX, mParamPointcloudLightPositionY, mParamPointcloudLightPositionZ));
 	mPointcloudBatch->getGlslProg()->uniform(VIEW_DIR_NAME, mCamera.getEyePoint());
@@ -395,7 +414,7 @@ void VisualizerApp::drawPointCloud()
 	mPointcloudBatch->getGlslProg()->uniform(REFL_STR_NAME, mParamPointcloudReflectionStrength);
 	mPointcloudBatch->drawInstanced(mPointcloudPoints.size());
 	mPointcloudTexture->unbind();
-	mSkyboxTexture2D->unbind();
+	mBackgroundReflectTexture->unbind();
 	gl::disableDepthRead();
 }
 

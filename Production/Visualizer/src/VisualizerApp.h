@@ -10,6 +10,7 @@
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Texture.h"
 #include "cinder/params/Params.h"
+#include "cinder/qtime/QuickTimeGl.h"
 #include "CiDSAPI.h"
 #include "Cinder-Bullet3D/RigidBody.h"
 #include "Cinder-Bullet3D/BulletContext.h"
@@ -33,7 +34,7 @@ private:
 	void setupGUI();
 	void setupDS();
 	void setupScene();
-	void setupSkybox(string pTextureFile, pair<string, string> pShaders, pair<string,int> pSamplerUniform);
+	void setupSkybox(string pMovieFile);
 	void setupPointCloud(pair<string, string> pShaders, vector<pair<string,int>> pSamplerUniforms);
 	void setupParticles(string pObjFile, string pTextureFile, pair<string, string> pShaders, vector<pair<string, int>> pSamplerUniforms);
 	void setupFBOs();
@@ -43,6 +44,7 @@ private:
 	void updateParticles();
 	void updateFBOs();
 	void updatePhysics();
+	void updateMovie();
 
 	void drawSkybox();
 	void drawPointCloud();
@@ -55,11 +57,11 @@ private:
 	CameraPersp				mCamera;
 	CameraUi				mCameraUi;
 	bullet::ContextRef		mPhysicsContext;
+	
 	//Skybox
-	//gl::BatchRef			mSkyboxBatch;
-	//gl::GlslProgRef			mSkyboxShader;
-	//gl::TextureCubeMapRef	mSkyboxTexture;
-	gl::Texture2dRef		mSkyboxTexture2D;
+	gl::TextureRef			mBackgroundTexture;
+	gl::Texture2dRef		mBackgroundReflectTexture;
+	qtime::MovieGlRef		mBackgroundPlayer;
 
 	//Point Cloud
 	vector<Particle>		mPointcloudPoints;
@@ -117,6 +119,5 @@ private:
 							mParamParticlesBlurSizeU,
 							mParamParticlesBlurSizeV,
 							mParamParticlesBlurStrength;
-
 };
 #endif
