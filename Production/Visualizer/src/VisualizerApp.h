@@ -71,11 +71,9 @@ private:
 	gl::VboRef				mParticlesInstanceData;
 	geom::BufferLayout		mParticlesInstanceAttribs;
 	gl::GlslProgRef			mParticlesShader,
-							mParticlesHighpassShader,
 							mParticlesBlurShader;
 
 	gl::FboRef				mParticlesBaseRT,
-							mParticlesHighPassRT,
 							mParticlesBlurURT,
 							mParticlesBlurVRT;
 
@@ -96,7 +94,9 @@ private:
 
 	int						mParamPointcloudStep;
 
-	float					mParamPointcloudSize,
+	float					mParamPointcloudMinDepth,
+							mParamPointcloudMaxDepth,
+							mParamPointcloudSize,
 							mParamPointcloudSpecularPower,
 							mParamPointcloudSpecularStrength,
 							mParamPointcloudFresnelPower,
@@ -108,12 +108,9 @@ private:
 							mParamParticlesSpecularPower,
 							mParamParticlesSpecularStrength,
 							mParamParticlesAmbientStrength,
-							mParamParticlesBlurLuminance,
-							mParamParticlesBlurWhiteCenter,
-							mParamParticlesBlurThreshold,
-							mParamParticlesBlurUStep,
-							mParamParticlesBlurVStep,
-							mParamParticlesBlurResolution,
-							mParamParticlesBlurRadius;
+							mParamParticlesBlurSizeU,
+							mParamParticlesBlurSizeV,
+							mParamParticlesBlurStrength;
+
 };
 #endif

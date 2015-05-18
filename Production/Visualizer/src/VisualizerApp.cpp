@@ -25,12 +25,9 @@ const string FRES_POW_NAME =		"uFresnelPower";
 const string FRES_STR_NAME =		"uFresnelStrength";
 const string REFL_STR_NAME =		"uReflectionStrength";
 const string AMB_STR_NAME =			"uAmbientStrength";
-const string HP_LUM_NAME =			"uLuminance";
-const string HP_WC_NAME =			"uWhiteCenter";
-const string HP_THRESH_NAME =		"uThreshold";
-const string BLUR_RES_NAME =		"uBlurResolution";
-const string BLUR_RAD_NAME =		"uBlurRadius";
+const string BLUR_SIZE_NAME =		"uBlurSize";
 const string BLUR_AXIS_NAME =		"uBlurAxis";
+const string BLUR_STR_NAME =		"uBlurStrength";
 const string INST_POS_NAME =		"iPosition";
 const string INST_UV_NAME =			"iTexCoord0";
 const string INST_SIZE_NAME =		"iSize";
@@ -110,7 +107,9 @@ void VisualizerApp::setupDS()
 void VisualizerApp::setupGUI()
 {
 	mDrawGUI = true;
-	
+
+	mParamPointcloudMinDepth = 100.0f,
+	mParamPointcloudMaxDepth = 2000.0f,
 	mParamPointcloudStep = 2;
 	mParamPointcloudSize = 3.0f;
 	mParamPointcloudSpecularPower = 8.0f;
@@ -125,18 +124,16 @@ void VisualizerApp::setupGUI()
 	mParamParticlesSpecularPower = 4.0f;
 	mParamParticlesSpecularStrength = 2.0f;
 	mParamParticlesAmbientStrength = 0.4f;
-	mParamParticlesBlurLuminance = 0.5f;
-	mParamParticlesBlurWhiteCenter = 0.5f;
-	mParamParticlesBlurThreshold = 0.5f;
-	mParamParticlesBlurResolution = 1280.0f;
-	mParamParticlesBlurRadius = 0.25f;
-	mParamParticlesBlurUStep = 0.75f;
-	mParamParticlesBlurVStep = 0.5f;
+	mParamParticlesBlurSizeU = 1.0f;
+	mParamParticlesBlurSizeV = 1.0f;
+	mParamParticlesBlurStrength = 1.0;
 
 	mGUI = params::InterfaceGl::create("Settings", vec2(300, 600));
 	mGUI->addSeparator();
 	mGUI->addText("Point Cloud");
 	mGUI->addSeparator();
+	mGUI->addParam<float>("cloudMinDepth", &mParamPointcloudMinDepth).optionsStr("label='Min Depth'");
+	mGUI->addParam<float>("cloudMaxDepth", &mParamPointcloudMaxDepth).optionsStr("label='Max Depth'");
 	mGUI->addParam<int>("cloudRes", &mParamPointcloudStep).optionsStr("label='Resolution'");
 	mGUI->addParam<float>("cloudSize", &mParamPointcloudSize).optionsStr("label='Point Size'");
 	mGUI->addParam<float>("cloudSpecularPower", &mParamPointcloudSpecularPower).optionsStr("label='Highlight Size'");
@@ -153,13 +150,9 @@ void VisualizerApp::setupGUI()
 	mGUI->addParam<float>("particlesSpecularPower", &mParamParticlesSpecularPower).optionsStr("label='Highlight Size'");
 	mGUI->addParam<float>("particlesSpecularStrength", &mParamParticlesSpecularStrength).optionsStr("label='Highlight Strength'");
 	mGUI->addParam<float>("particlesAmbientStrength", &mParamParticlesAmbientStrength).optionsStr("label='Ambient Strength'");
-	mGUI->addParam<float>("particlesHPLuminance", &mParamParticlesBlurLuminance).optionsStr("label='Luminance'");
-	mGUI->addParam<float>("particlesHPWhiteCenter", &mParamParticlesBlurWhiteCenter).optionsStr("label='Midtone'");
-	mGUI->addParam<float>("particlesHPThreshold", &mParamParticlesBlurThreshold).optionsStr("label='Threshold'");
-	mGUI->addParam<float>("particlesBlurRes", &mParamParticlesBlurResolution).optionsStr("label='Blur Resolution'");
-	mGUI->addParam<float>("particlesBlurRad", &mParamParticlesBlurRadius).optionsStr("label='Blur Radius'");
-	mGUI->addParam<float>("particlesBlurUStep", &mParamParticlesBlurUStep).optionsStr("label='H Blur Width'");
-	mGUI->addParam<float>("particlesBlurVStep", &mParamParticlesBlurVStep).optionsStr("label='V Blur Width'");
+	mGUI->addParam<float>("particlesBlurSizeU", &mParamParticlesBlurSizeU).optionsStr("label='Blur Width'");
+	mGUI->addParam<float>("particlesBlurSizeV", &mParamParticlesBlurSizeV).optionsStr("label='Blur Height'");
+	mGUI->addParam<float>("particlesBlurStrength", &mParamParticlesBlurStrength).optionsStr("label='Blur Strength'");
 
 }
 void VisualizerApp::setupScene()
@@ -246,14 +239,10 @@ void VisualizerApp::setupParticles(string pObjFile, string pTextureFile, pair<st
 void VisualizerApp::setupFBOs()
 {
 	mParticlesBaseRT = gl::Fbo::create(VP_SIZE.x, VP_SIZE.y, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA32F).dataType(GL_FLOAT)));
-	mParticlesHighPassRT = gl::Fbo::create(VP_SIZE.x, VP_SIZE.y, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA32F).dataType(GL_FLOAT)));
 	mParticlesBlurURT = gl::Fbo::create(VP_SIZE.x, VP_SIZE.y, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA32F).dataType(GL_FLOAT)));
 	mParticlesBlurVRT = gl::Fbo::create(VP_SIZE.x, VP_SIZE.y, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA32F).dataType(GL_FLOAT)));
 
-	mParticlesHighpassShader = gl::GlslProg::create(loadAsset("shaders/passthru_vertex.glsl"), loadAsset("shaders/highpass_fragment.glsl"));
-	mParticlesHighpassShader->uniform(TEXTURE_NAME, TEXTURE_UNIT);
-
-	mParticlesBlurShader = gl::GlslProg::create(loadAsset("shaders/passthru_vertex.glsl"), loadAsset("shaders/blur_fragment.glsl"));
+	mParticlesBlurShader = gl::GlslProg::create(loadAsset("shaders/blur_vertex.glsl"), loadAsset("shaders/blur_fragment.glsl"));
 	mParticlesBlurShader->uniform(TEXTURE_NAME, TEXTURE_UNIT);
 }
 
@@ -277,7 +266,7 @@ void VisualizerApp::updatePointCloud()
 			if (x % mParamPointcloudStep == 0 && y % mParamPointcloudStep == 0)
 			{
 				float z = (float)depthIter.v();
-				if (z > 0.0f && z < 1500.0f)
+				if (z > mParamPointcloudMinDepth && z < mParamPointcloudMaxDepth)
 				{
 					vec3 worldPosition = mDS->getDepthSpacePoint(static_cast<float>(x), static_cast<float>(y), z);
 					vec2 texCoord = mDS->getColorCoordsFromDepthSpace(worldPosition);
@@ -343,38 +332,25 @@ void VisualizerApp::updateFBOs()
 	drawParticles();
 	mParticlesBaseRT->unbindFramebuffer();
 
-	mParticlesHighPassRT->bindFramebuffer();
+	mParticlesBlurURT->bindFramebuffer();
 	mParticlesBaseRT->bindTexture(TEXTURE_UNIT);
-	mParticlesHighpassShader->bind();
-	mParticlesHighpassShader->uniform(HP_LUM_NAME, mParamParticlesBlurLuminance);
-	mParticlesHighpassShader->uniform(HP_WC_NAME, mParamParticlesBlurWhiteCenter);
-	mParticlesHighpassShader->uniform(HP_THRESH_NAME, mParamParticlesBlurThreshold);
+	mParticlesBlurShader->bind();
+	mParticlesBlurShader->uniform(BLUR_SIZE_NAME, vec2(mParamParticlesBlurSizeU, mParamParticlesBlurSizeV));
+	mParticlesBlurShader->uniform(BLUR_AXIS_NAME, vec2(1.0, 0.0));
+	mParticlesBlurShader->uniform(BLUR_STR_NAME, mParamParticlesBlurStrength);
 	gl::setMatricesWindow(getWindowSize());
 	gl::clear(ColorA::zero());
 	gl::color(ColorA::white());
 	gl::drawSolidRect(windowRect);
 	mParticlesBaseRT->unbindTexture(TEXTURE_UNIT);
-	mParticlesHighPassRT->unbindFramebuffer();
-
-	mParticlesBlurURT->bindFramebuffer();
-	mParticlesHighPassRT->bindTexture(TEXTURE_UNIT);
-	mParticlesBlurShader->bind();
-	mParticlesBlurShader->uniform(BLUR_RES_NAME, mParamParticlesBlurResolution);
-	mParticlesBlurShader->uniform(BLUR_RAD_NAME, mParamParticlesBlurRadius);
-	mParticlesBlurShader->uniform(BLUR_AXIS_NAME, vec2(mParamParticlesBlurUStep, 0.0));
-	gl::setMatricesWindow(getWindowSize());
-	gl::clear(ColorA::zero());
-	gl::color(ColorA::white());
-	gl::drawSolidRect(windowRect);
-	mParticlesHighPassRT->unbindTexture(TEXTURE_UNIT);
 	mParticlesBlurURT->unbindFramebuffer();
 
 	mParticlesBlurVRT->bindFramebuffer();
 	mParticlesBlurURT->bindTexture(TEXTURE_UNIT);
 	mParticlesBlurShader->bind();
-	mParticlesBlurShader->uniform(BLUR_RES_NAME, mParamParticlesBlurResolution);
-	mParticlesBlurShader->uniform(BLUR_RAD_NAME, mParamParticlesBlurRadius);
-	mParticlesBlurShader->uniform(BLUR_AXIS_NAME, vec2(0.0, mParamParticlesBlurVStep));
+	mParticlesBlurShader->uniform(BLUR_SIZE_NAME, vec2(mParamParticlesBlurSizeU, mParamParticlesBlurSizeV));
+	mParticlesBlurShader->uniform(BLUR_AXIS_NAME, vec2(0.0, 1.0));
+	mParticlesBlurShader->uniform(BLUR_STR_NAME, mParamParticlesBlurStrength);
 	gl::setMatricesWindow(getWindowSize());
 	gl::clear(ColorA::zero());
 	gl::color(ColorA::white());
