@@ -72,8 +72,7 @@ private:
 	geom::BufferLayout		mParticlesInstanceAttribs;
 	gl::GlslProgRef			mParticlesShader,
 							mParticlesHighpassShader,
-							mParticlesBlurUShader,
-							mParticlesBlurVShader;
+							mParticlesBlurShader;
 
 	gl::FboRef				mParticlesBaseRT,
 							mParticlesHighPassRT,
@@ -109,7 +108,12 @@ private:
 							mParamParticlesSpecularPower,
 							mParamParticlesSpecularStrength,
 							mParamParticlesAmbientStrength,
+							mParamParticlesBlurLuminance,
+							mParamParticlesBlurWhiteCenter,
+							mParamParticlesBlurThreshold,
 							mParamParticlesBlurUStep,
-							mParamParticlesBlurVStep;
+							mParamParticlesBlurVStep,
+							mParamParticlesBlurResolution,
+							mParamParticlesBlurRadius;
 };
 #endif

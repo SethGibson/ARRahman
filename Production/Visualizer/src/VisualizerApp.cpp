@@ -13,23 +13,28 @@ const ivec2 RGB_SIZE(640, 480);
 const ivec2 WINDOW_SIZE(1280, 720);
 const ivec2 VP_SIZE(1280, 720);
 
-const string CUBEMAP_NAME =		"uCubemapSampler";
-const string TEXTURE_NAME =		"uTextureSampler";
-const string MAT_MODEL_NAME =	"uModelMatrix";
-const string MAT_PROJ_NAME =	"uProjMatrix";
-const string LIGHT_POS_NAME =	"uLightPosition";
-const string VIEW_DIR_NAME =	"uViewDirection";
-const string SPEC_POW_NAME =	"uSpecularPower";
-const string SPEC_STR_NAME =	"uSpecularStrength";
-const string FRES_POW_NAME =	"uFresnelPower";
-const string FRES_STR_NAME =	"uFresnelStrength";
-const string REFL_STR_NAME =	"uReflectionStrength";
-const string AMB_STR_NAME =		"uAmbientStrength";
-const string IMAGE_SIZE_NAME =	"uImageSize";
-const string INST_POS_NAME =	"iPosition";
-const string INST_UV_NAME =		"iTexCoord0";
-const string INST_SIZE_NAME =	"iSize";
-const string INST_MODEL_NAME =	"iModelMatrix";
+const string CUBEMAP_NAME =			"uCubemapSampler";
+const string TEXTURE_NAME =			"uTextureSampler";
+const string MAT_MODEL_NAME =		"uModelMatrix";
+const string MAT_PROJ_NAME =		"uProjMatrix";
+const string LIGHT_POS_NAME =		"uLightPosition";
+const string VIEW_DIR_NAME =		"uViewDirection";
+const string SPEC_POW_NAME =		"uSpecularPower";
+const string SPEC_STR_NAME =		"uSpecularStrength";
+const string FRES_POW_NAME =		"uFresnelPower";
+const string FRES_STR_NAME =		"uFresnelStrength";
+const string REFL_STR_NAME =		"uReflectionStrength";
+const string AMB_STR_NAME =			"uAmbientStrength";
+const string HP_LUM_NAME =			"uLuminance";
+const string HP_WC_NAME =			"uWhiteCenter";
+const string HP_THRESH_NAME =		"uThreshold";
+const string BLUR_RES_NAME =		"uBlurResolution";
+const string BLUR_RAD_NAME =		"uBlurRadius";
+const string BLUR_AXIS_NAME =		"uBlurAxis";
+const string INST_POS_NAME =		"iPosition";
+const string INST_UV_NAME =			"iTexCoord0";
+const string INST_SIZE_NAME =		"iSize";
+const string INST_MODEL_NAME =		"iModelMatrix";
 
 
 const int CUBEMAP_UNIT =		0;
@@ -77,18 +82,13 @@ void VisualizerApp::draw()
 	gl::setMatrices(mCamera);
 	drawSkybox();
 	drawPointCloud();
-	//drawParticles();
+	drawParticles();
 
 	//draw 2d
-	/*
 	gl::setMatricesWindow(getWindowSize());
 	drawFBO();
 	if (mDrawGUI)
 		mGUI->draw();
-	*/
-	gl::setMatricesWindow(getWindowSize());
-	//drawFBO();
-	gl::draw(mParticlesBlurVRT->getColorTexture(), vec2(0));
 }
 
 void VisualizerApp::cleanup()
@@ -125,10 +125,15 @@ void VisualizerApp::setupGUI()
 	mParamParticlesSpecularPower = 4.0f;
 	mParamParticlesSpecularStrength = 2.0f;
 	mParamParticlesAmbientStrength = 0.4f;
-	mParamParticlesBlurUStep = 512.0f;
-	mParamParticlesBlurVStep = 512.0f;
+	mParamParticlesBlurLuminance = 0.5f;
+	mParamParticlesBlurWhiteCenter = 0.5f;
+	mParamParticlesBlurThreshold = 0.5f;
+	mParamParticlesBlurResolution = 1280.0f;
+	mParamParticlesBlurRadius = 0.25f;
+	mParamParticlesBlurUStep = 0.75f;
+	mParamParticlesBlurVStep = 0.5f;
 
-	mGUI = params::InterfaceGl::create("Settings", vec2(300, 400));
+	mGUI = params::InterfaceGl::create("Settings", vec2(300, 600));
 	mGUI->addSeparator();
 	mGUI->addText("Point Cloud");
 	mGUI->addSeparator();
@@ -148,6 +153,11 @@ void VisualizerApp::setupGUI()
 	mGUI->addParam<float>("particlesSpecularPower", &mParamParticlesSpecularPower).optionsStr("label='Highlight Size'");
 	mGUI->addParam<float>("particlesSpecularStrength", &mParamParticlesSpecularStrength).optionsStr("label='Highlight Strength'");
 	mGUI->addParam<float>("particlesAmbientStrength", &mParamParticlesAmbientStrength).optionsStr("label='Ambient Strength'");
+	mGUI->addParam<float>("particlesHPLuminance", &mParamParticlesBlurLuminance).optionsStr("label='Luminance'");
+	mGUI->addParam<float>("particlesHPWhiteCenter", &mParamParticlesBlurWhiteCenter).optionsStr("label='Midtone'");
+	mGUI->addParam<float>("particlesHPThreshold", &mParamParticlesBlurThreshold).optionsStr("label='Threshold'");
+	mGUI->addParam<float>("particlesBlurRes", &mParamParticlesBlurResolution).optionsStr("label='Blur Resolution'");
+	mGUI->addParam<float>("particlesBlurRad", &mParamParticlesBlurRadius).optionsStr("label='Blur Radius'");
 	mGUI->addParam<float>("particlesBlurUStep", &mParamParticlesBlurUStep).optionsStr("label='H Blur Width'");
 	mGUI->addParam<float>("particlesBlurVStep", &mParamParticlesBlurVStep).optionsStr("label='V Blur Width'");
 
@@ -243,14 +253,8 @@ void VisualizerApp::setupFBOs()
 	mParticlesHighpassShader = gl::GlslProg::create(loadAsset("shaders/passthru_vertex.glsl"), loadAsset("shaders/highpass_fragment.glsl"));
 	mParticlesHighpassShader->uniform(TEXTURE_NAME, TEXTURE_UNIT);
 
-	mParticlesBlurUShader = gl::GlslProg::create(loadAsset("shaders/passthru_vertex.glsl"), loadAsset("shaders/blur_u_fragment.glsl"));
-	mParticlesBlurUShader->uniform(TEXTURE_NAME, TEXTURE_UNIT);
-	mParticlesBlurUShader->uniform(IMAGE_SIZE_NAME, vec2(1280,720));
-
-
-	mParticlesBlurVShader = gl::GlslProg::create(loadAsset("shaders/passthru_vertex.glsl"), loadAsset("shaders/blur_v_fragment.glsl"));
-	mParticlesBlurVShader->uniform(TEXTURE_NAME, TEXTURE_UNIT);
-	mParticlesBlurVShader->uniform(IMAGE_SIZE_NAME, vec2(1280, 720));
+	mParticlesBlurShader = gl::GlslProg::create(loadAsset("shaders/passthru_vertex.glsl"), loadAsset("shaders/blur_fragment.glsl"));
+	mParticlesBlurShader->uniform(TEXTURE_NAME, TEXTURE_UNIT);
 }
 
 #pragma endregion
@@ -342,6 +346,9 @@ void VisualizerApp::updateFBOs()
 	mParticlesHighPassRT->bindFramebuffer();
 	mParticlesBaseRT->bindTexture(TEXTURE_UNIT);
 	mParticlesHighpassShader->bind();
+	mParticlesHighpassShader->uniform(HP_LUM_NAME, mParamParticlesBlurLuminance);
+	mParticlesHighpassShader->uniform(HP_WC_NAME, mParamParticlesBlurWhiteCenter);
+	mParticlesHighpassShader->uniform(HP_THRESH_NAME, mParamParticlesBlurThreshold);
 	gl::setMatricesWindow(getWindowSize());
 	gl::clear(ColorA::zero());
 	gl::color(ColorA::white());
@@ -351,7 +358,10 @@ void VisualizerApp::updateFBOs()
 
 	mParticlesBlurURT->bindFramebuffer();
 	mParticlesHighPassRT->bindTexture(TEXTURE_UNIT);
-	mParticlesBlurUShader->bind();
+	mParticlesBlurShader->bind();
+	mParticlesBlurShader->uniform(BLUR_RES_NAME, mParamParticlesBlurResolution);
+	mParticlesBlurShader->uniform(BLUR_RAD_NAME, mParamParticlesBlurRadius);
+	mParticlesBlurShader->uniform(BLUR_AXIS_NAME, vec2(mParamParticlesBlurUStep, 0.0));
 	gl::setMatricesWindow(getWindowSize());
 	gl::clear(ColorA::zero());
 	gl::color(ColorA::white());
@@ -361,7 +371,10 @@ void VisualizerApp::updateFBOs()
 
 	mParticlesBlurVRT->bindFramebuffer();
 	mParticlesBlurURT->bindTexture(TEXTURE_UNIT);
-	mParticlesBlurVShader->bind();
+	mParticlesBlurShader->bind();
+	mParticlesBlurShader->uniform(BLUR_RES_NAME, mParamParticlesBlurResolution);
+	mParticlesBlurShader->uniform(BLUR_RAD_NAME, mParamParticlesBlurRadius);
+	mParticlesBlurShader->uniform(BLUR_AXIS_NAME, vec2(0.0, mParamParticlesBlurVStep));
 	gl::setMatricesWindow(getWindowSize());
 	gl::clear(ColorA::zero());
 	gl::color(ColorA::white());

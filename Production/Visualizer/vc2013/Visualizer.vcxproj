@@ -100,8 +100,7 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\assets\shaders\blur_u_fragment.glsl" />
-    <None Include="..\assets\shaders\blur_v_fragment.glsl" />
+    <None Include="..\assets\shaders\blur_fragment.glsl" />
     <None Include="..\assets\shaders\highpass_fragment.glsl" />
     <None Include="..\assets\shaders\particle_fragment.glsl" />
     <None Include="..\assets\shaders\particle_vertex.glsl" />
