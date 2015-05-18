@@ -1,11 +1,20 @@
 #ifndef _DEBUG
 #pragma comment(lib, "DSAPI32.lib")
+#pragma comment(lib, "BulletCollision_vs2010.lib")
+#pragma comment(lib, "BulletDynamics_vs2010.lib")
+#pragma comment(lib, "BulletSoftBody_vs2010.lib")
+#pragma comment(lib, "LinearMath_vs2010.lib")
 #else
 #pragma comment(lib, "DSAPI32.dbg.lib")
+#pragma comment(lib, "BulletCollision_vs2010_debug.lib")
+#pragma comment(lib, "BulletDynamics_vs2010_debug.lib")
+#pragma comment(lib, "BulletSoftBody_vs2010_debug.lib")
+#pragma comment(lib, "LinearMath_vs2010_debug.lib")
 #endif
 #include "VisualizerApp.h"
 #include "cinder/ObjLoader.h"
 #include "cinder/TriMesh.h"
+
 
 #pragma region Constants
 const ivec2 DEPTH_SIZE(320, 240);

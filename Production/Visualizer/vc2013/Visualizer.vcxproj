@@ -57,11 +57,11 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>"..\..\..\..\..\..\libs\Cinder\include";..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>"$(CINDER_DEV)\include";..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>cinder-$(PlatformToolset)_d.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(CINDER_DEV)\lib\msw\$(PlatformTarget);$(DSROOT)\Lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CINDER_DEV)\lib\msw\$(PlatformTarget);$(DSROOT)\Lib;..\blocks\Cinder-Bullet3D\lib\msw\x86</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -85,11 +85,11 @@
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
     </ProjectReference>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>"..\..\..\..\..\..\libs\Cinder\include";..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>"$(CINDER_DEV)\include";..\include</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>cinder-$(PlatformToolset).lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(CINDER_DEV)\lib\msw\$(PlatformTarget);$(DSROOT)\Lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CINDER_DEV)\lib\msw\$(PlatformTarget);$(DSROOT)\Lib;..\blocks\Cinder-Bullet3D\lib\msw\x86</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <SubSystem>Windows</SubSystem>
