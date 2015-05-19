@@ -38,10 +38,11 @@ void Particle::Step(float pElapsed, const Perlin &pNoise)
 
 		float elapsedFrames = pElapsed;
 		PModelMatrix = mat4();
-		PModelMatrix = glm::translate(PModelMatrix, PPosition);
-		//PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(1, 0, 0));
-		//PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(0, 1, 0));
 		PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(0, 0, 1));
+		PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(1, 0, 0));
+		PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(0, 1, 0));
+		PModelMatrix = glm::translate(PModelMatrix, PPosition);
+
 
 
 	}
