@@ -34,6 +34,7 @@ const string FRES_POW_NAME =		"uFresnelPower";
 const string FRES_STR_NAME =		"uFresnelStrength";
 const string REFL_STR_NAME =		"uReflectionStrength";
 const string AMB_STR_NAME =			"uAmbientStrength";
+const string MOVIE_SIZE_NAME =		"uMovieSize";
 const string BLUR_SIZE_NAME =		"uBlurSize";
 const string BLUR_AXIS_NAME =		"uBlurAxis";
 const string BLUR_STR_NAME =		"uBlurStrength";
@@ -181,6 +182,7 @@ void VisualizerApp::setupSkybox(string pMovieFile)
 		mBackgroundPlayer = qtime::MovieGl::create(loadAsset(pMovieFile));
 		mBackgroundPlayer ->setLoop();
 		mBackgroundPlayer->play();
+		mBackgroundSize = vec2(mBackgroundPlayer->getSize());
 	}
 	catch (ci::Exception &exc)
 	{
@@ -188,7 +190,7 @@ void VisualizerApp::setupSkybox(string pMovieFile)
 		mBackgroundPlayer.reset();
 	}
 	mBackgroundTexture.reset();
-	mBackgroundReflectTexture = gl::Texture2d::create(loadImage(loadAsset("textures/test_bg.png")));
+	
 }
 
 void VisualizerApp::setupPointCloud(pair<string, string> pShaders, vector<pair<string,int>> pSamplerUniforms)
@@ -402,8 +404,8 @@ void VisualizerApp::drawSkybox()
 void VisualizerApp::drawPointCloud()
 {
 	gl::enableDepthRead();
-	mBackgroundReflectTexture->bind(CUBEMAP_UNIT);
-
+	if (mBackgroundTexture)
+		mBackgroundTexture->bind(CUBEMAP_UNIT);
 	mPointcloudTexture->bind(TEXTURE_UNIT);
 	mPointcloudBatch->getGlslProg()->uniform(LIGHT_POS_NAME, vec3(mParamPointcloudLightPositionX, mParamPointcloudLightPositionY, mParamPointcloudLightPositionZ));
 	mPointcloudBatch->getGlslProg()->uniform(VIEW_DIR_NAME, mCamera.getEyePoint());
@@ -412,9 +414,11 @@ void VisualizerApp::drawPointCloud()
 	mPointcloudBatch->getGlslProg()->uniform(FRES_POW_NAME, mParamPointcloudFresnelPower);
 	mPointcloudBatch->getGlslProg()->uniform(FRES_STR_NAME, mParamPointcloudFresnelStrength);
 	mPointcloudBatch->getGlslProg()->uniform(REFL_STR_NAME, mParamPointcloudReflectionStrength);
+	mPointcloudBatch->getGlslProg()->uniform(MOVIE_SIZE_NAME, mBackgroundSize);
 	mPointcloudBatch->drawInstanced(mPointcloudPoints.size());
 	mPointcloudTexture->unbind();
-	mBackgroundReflectTexture->unbind();
+	if (mBackgroundTexture)
+		mBackgroundTexture->unbind();
 	gl::disableDepthRead();
 }
 

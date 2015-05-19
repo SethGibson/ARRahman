@@ -60,8 +60,8 @@ private:
 	
 	//Skybox
 	gl::TextureRef			mBackgroundTexture;
-	gl::Texture2dRef		mBackgroundReflectTexture;
 	qtime::MovieGlRef		mBackgroundPlayer;
+	vec2					mBackgroundSize;
 
 	//Point Cloud
 	vector<Particle>		mPointcloudPoints;

@@ -1,13 +1,14 @@
 #version 150
-uniform sampler2D	uCubemapSampler;
-uniform sampler2D	uTextureSampler;
-uniform vec3		uLightPosition;
-uniform vec3		uViewDirection;
-uniform float		uSpecularPower;
-uniform float		uSpecularStrength;
-uniform float		uFresnelPower;
-uniform float		uFresnelStrength;
-uniform float		uReflectionStrength;
+uniform sampler2DRect	uCubemapSampler;
+uniform sampler2D		uTextureSampler;
+uniform vec3			uLightPosition;
+uniform vec3			uViewDirection;
+uniform vec2			uMovieSize;
+uniform float			uSpecularPower;
+uniform float			uSpecularStrength;
+uniform float			uFresnelPower;
+uniform float			uFresnelStrength;
+uniform float			uReflectionStrength;
 
 in vec4				FragPos;
 in vec3				Normal;
@@ -27,6 +28,8 @@ void main()
 	vec3 viewDir = normalize(uViewDirection-FragPos.xyz);
 	vec3 viewReflect = normalize(reflect(viewDir, normal));
 	vec2 viewUV = vec2((viewReflect.x/viewReflect.z+1)*0.5,(viewReflect.y/viewReflect.z+1)*0.5);
+	viewUV.x*=uMovieSize.x;
+	viewUV.y*=uMovieSize.y;
 
 	vec3 viewNormal = normalize(ViewNormal);
 	vec3 viewPos = normalize(-ViewPos);
