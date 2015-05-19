@@ -17,6 +17,8 @@
 
 
 #pragma region Constants
+const int MAX_PARTICLES = 5000;
+const int PARTICLE_BATCH_SIZE = 10;
 const ivec2 DEPTH_SIZE(320, 240);
 const ivec2 RGB_SIZE(640, 480);
 const ivec2 WINDOW_SIZE(1280, 720);
@@ -42,7 +44,7 @@ const string INST_POS_NAME =		"iPosition";
 const string INST_UV_NAME =			"iTexCoord0";
 const string INST_SIZE_NAME =		"iSize";
 const string INST_MODEL_NAME =		"iModelMatrix";
-
+const string INST_ALPHA_NAME =		"iAlpha";
 const int CUBEMAP_UNIT =		0;
 const int TEXTURE_UNIT =		1;
 #pragma endregion
@@ -221,13 +223,6 @@ void VisualizerApp::setupPointCloud(pair<string, string> pShaders, vector<pair<s
 
 void VisualizerApp::setupParticles(string pObjFile, string pTextureFile, pair<string, string> pShaders, vector<pair<string,int>> pSamplerUniforms)
 {
-	mNoOfFramesBeforeSpawingParticles = 200;
-	mNoOfFramesElapsed = 200;
-	mNumberOfParticlesSpawned = 0;
-	mTimeToSpawnParticles = 0;
-	mMaxParticleCount = 5000;
-	mIterator = ivec3();
-	mDecrementer = ivec3();
 	mParticlesPerlin = Perlin();
 
 	ObjLoader rawMesh(loadAsset(pObjFile));
@@ -242,13 +237,15 @@ void VisualizerApp::setupParticles(string pObjFile, string pTextureFile, pair<st
 	mParticlesInstanceAttribs.append(geom::CUSTOM_0, 3, sizeof(Particle), offsetof(Particle, PPosition), 1);
 	mParticlesInstanceAttribs.append(geom::CUSTOM_1, 1, sizeof(Particle), offsetof(Particle, PSize), 1);
 	mParticlesInstanceAttribs.append(geom::CUSTOM_3, 16, sizeof(Particle), offsetof(Particle, PModelMatrix), 1);
+	mParticlesInstanceAttribs.append(geom::CUSTOM_4, 1, sizeof(Particle), offsetof(Particle, PAlpha), 1);
 	particleMesh->appendVbo(mParticlesInstanceAttribs, mParticlesInstanceData);
 	mParticlesShader = gl::GlslProg::create(loadAsset(pShaders.first), loadAsset(pShaders.second));
 	mParticlesBatch = gl::Batch::create(particleMesh, mParticlesShader,
 										{
 											{ geom::CUSTOM_0, INST_POS_NAME },
 											{ geom::CUSTOM_1, INST_SIZE_NAME },
-											{ geom::CUSTOM_3, INST_MODEL_NAME }
+											{ geom::CUSTOM_3, INST_MODEL_NAME },
+											{ geom::CUSTOM_4, INST_ALPHA_NAME }
 										});
 
 	for (auto u : pSamplerUniforms)
@@ -306,37 +303,23 @@ void VisualizerApp::updatePointCloud()
 
 void VisualizerApp::updateParticles()
 {
-	mTimeToSpawnParticles--;
-
-	if (mTimeToSpawnParticles <= 0)
+	for (int i = 0; i < PARTICLE_BATCH_SIZE; ++i)
 	{
-		if (mParticlesPoints.size()<mMaxParticleCount)
+		if (mParticlesPoints.size() < MAX_PARTICLES)
 		{
-			int noOfParticlesPerSpawn = 10;
-			int TotalNumberOfParticles = 500;
-			for (int i = 0; i < noOfParticlesPerSpawn; i++)
-				mParticlesPoints.push_back(Particle(vec3(Rand::randFloat(-50.0f, 50.0f), Rand::randFloat(70.0f, 30.0f), 100)));
-
-			mNumberOfParticlesSpawned = mNumberOfParticlesSpawned + 2 * noOfParticlesPerSpawn;
-			if (mNumberOfParticlesSpawned > TotalNumberOfParticles)
-			{
-				//reset after spawning
-				mNumberOfParticlesSpawned = 0;
-				mIterator.x = Rand::randInt(-500, -300);
-				mIterator.z = Rand::randInt(300, 700);
-				mDecrementer.x = Rand::randInt(700, 1000);
-				mDecrementer.z = Rand::randInt(400, 500);
-				mTimeToSpawnParticles = Rand::randInt(500, 550);
-			}
+			vec3 newPosition = vec3(randFloat(-250.0f, 250.0f), randFloat(-50.0f, -200.0f), randFloat(100.0f, 500.0f));
+			mParticlesPoints.push_back(Particle(newPosition));
+		}
+		else
+		{
+			break;
 		}
 	}
 
 	float elapsedTime = (float)getElapsedSeconds();
-	vec3 billboardUpVector, billboardRightVector;
-	mCamera.getBillboardVectors(&billboardRightVector, &billboardUpVector);
 	for (auto pit = mParticlesPoints.begin(); pit != mParticlesPoints.end();)
 	{
-		pit->Step(elapsedTime, mParticlesPerlin, billboardRightVector);
+		pit->Step(elapsedTime, mParticlesPerlin);
 		if (pit->Age <= 0)
 			pit = mParticlesPoints.erase(pit);
 		else
@@ -425,6 +408,7 @@ void VisualizerApp::drawPointCloud()
 void VisualizerApp::drawParticles()
 {
 	gl::enableDepthRead();
+	gl::enableAlphaBlending();
 	mParticlesTexture->bind(TEXTURE_UNIT);
 	mParticlesBatch->getGlslProg()->uniform(LIGHT_POS_NAME, vec3(mParamPointcloudLightPositionX, mParamPointcloudLightPositionY, mParamPointcloudLightPositionZ));
 	mParticlesBatch->getGlslProg()->uniform(VIEW_DIR_NAME, mCamera.getViewDirection());
@@ -433,6 +417,7 @@ void VisualizerApp::drawParticles()
 	mParticlesBatch->getGlslProg()->uniform(AMB_STR_NAME, mParamParticlesAmbientStrength);
 	mParticlesBatch->drawInstanced(mParticlesPoints.size());
 	mParticlesTexture->unbind();
+	gl::disableAlphaBlending();
 	gl::disableDepthRead();
 }
 

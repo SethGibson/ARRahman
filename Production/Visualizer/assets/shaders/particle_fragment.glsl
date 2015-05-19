@@ -9,6 +9,7 @@ uniform float		uAmbientStrength;
 in vec4				FragPos;
 in vec3				Normal;
 in vec2				UV;
+in float			Alpha;
 
 out vec4			FragColor;
 
@@ -28,4 +29,5 @@ void main()
 	
 	
 	FragColor = mix(texContrib+vec4(specColor,1.0), ambContrib, diffContrib);
+	FragColor.a = Alpha;
 }
