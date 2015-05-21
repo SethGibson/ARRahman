@@ -17,13 +17,16 @@
 
 
 #pragma region Constants
+
+const ivec2 PRODUCTION_SIZE(1920, 1080);
+const string PRODUCTION_FILENAME = "production.mov";
+
 const int MAX_PARTICLES = 5000;
-const int PARTICLE_BATCH_SIZE = 4;
+const int PARTICLE_BATCH_SIZE = 3;
 const ivec2 DEPTH_SIZE(320, 240);
 const ivec2 RGB_SIZE(640, 480);
 const ivec2 WINDOW_SIZE(1280, 720);
 const ivec2 VP_SIZE(1280, 720);
-const ivec2 PRODUCTION_SIZE(1400, 1050);
 
 const string CUBEMAP_NAME =			"uCubemapSampler";
 const string TEXTURE_NAME =			"uTextureSampler";
@@ -57,7 +60,7 @@ void VisualizerApp::setup()
 	setupGUI();
 	setupDS();
 	setupScene();
-	setupSkybox("movies/oniria.mp4");
+	setupSkybox("movies/" + PRODUCTION_FILENAME);
 
 	setupPointCloud(	{"shaders/pointcloud_vertex.glsl","shaders/pointcloud_fragment.glsl"},
 						{{ CUBEMAP_NAME, CUBEMAP_UNIT },{ TEXTURE_NAME, TEXTURE_UNIT }});
@@ -137,11 +140,11 @@ void VisualizerApp::setupGUI()
 
 	mParamPointcloudMinDepth = 100.0f,
 	mParamPointcloudMaxDepth = 2000.0f,
-	mParamPointcloudStep = 2;
-	mParamPointcloudSize = 3.0f;
+	mParamPointcloudStep = 1;
+	mParamPointcloudSize = 5.0f; //if spheres, 1.5f, if cubes, either 2.0f or something large for overlap (like 5.0f), depending on camera angle.
 	mParamPointcloudSpecularPower = 8.0f;
-	mParamPointcloudSpecularStrength = 0.5f;
-	mParamPointcloudFresnelPower = 1.0f;
+	mParamPointcloudSpecularStrength = 0.0f;
+	mParamPointcloudFresnelPower = 2.0f;
 	mParamPointcloudFresnelStrength = 1.0f;
 	mParamPointcloudReflectionStrength = 1.0f;
 	mParamPointcloudLightPositionX = 0.0f;
@@ -218,7 +221,7 @@ void VisualizerApp::setupPointCloud(pair<string, string> pShaders, vector<pair<s
 	mPointcloudInstanceAttribs.append(geom::CUSTOM_2, 2, sizeof(Particle), offsetof(Particle, PUV), 1);
 
 
-	gl::VboMeshRef pointcloudMesh = gl::VboMesh::create(geom::Sphere());
+	gl::VboMeshRef pointcloudMesh = gl::VboMesh::create(geom::Cube());
 	pointcloudMesh->appendVbo(mPointcloudInstanceAttribs, mPointcloudInstanceData);
 
 	mPointcloudShader = gl::GlslProg::create(loadAsset(pShaders.first), loadAsset(pShaders.second));
@@ -317,16 +320,20 @@ void VisualizerApp::updatePointCloud()
 
 void VisualizerApp::updateParticles()
 {
-	for (int i = 0; i < PARTICLE_BATCH_SIZE; ++i)
+	if (getElapsedFrames() % 10 == 0 || getElapsedFrames() < 10)
 	{
-		if (mParticlesPoints.size() < MAX_PARTICLES)
+
+		for (int i = 0; i < PARTICLE_BATCH_SIZE; ++i)
 		{
-			vec3 newPosition = vec3(randFloat(-250.0f, 250.0f), randFloat(-50.0f, -200.0f), randFloat(100.0f, 500.0f));
-			mParticlesPoints.push_back(Particle(newPosition));
-		}
-		else
-		{
-			break;
+			if (mParticlesPoints.size() < MAX_PARTICLES)
+			{
+				vec3 newPosition = vec3(randFloat(-100.0f, 100.0f), randFloat(-150.0f, -200.0f), randFloat(600.0f, 700.0f));
+				mParticlesPoints.push_back(Particle(newPosition));
+			}
+			else
+			{
+				break;
+			}
 		}
 	}
 
