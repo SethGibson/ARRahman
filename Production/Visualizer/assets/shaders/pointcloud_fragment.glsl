@@ -43,7 +43,7 @@ void main()
 	float specContrib = max(pow(dot(viewDir,lightReflect),uSpecularPower),0.0);
 	specContrib *= uSpecularStrength;
 
-	float fresContrib = 1.0-pow(max(dot(viewPos,viewNormal), 0.0), 1.0/uFresnelPower);
+	float fresContrib = 1.0-pow(max(dot(viewPos,viewNormal), 0.0), uFresnelPower);
 	
 	
 	FragColor = texContrib*diffContrib+specContrib+(reflContrib*fresContrib);
