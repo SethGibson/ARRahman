@@ -18,11 +18,12 @@
 
 #pragma region Constants
 const int MAX_PARTICLES = 5000;
-const int PARTICLE_BATCH_SIZE = 10;
+const int PARTICLE_BATCH_SIZE = 4;
 const ivec2 DEPTH_SIZE(320, 240);
 const ivec2 RGB_SIZE(640, 480);
 const ivec2 WINDOW_SIZE(1280, 720);
 const ivec2 VP_SIZE(1280, 720);
+const ivec2 PRODUCTION_SIZE(1400, 1050);
 
 const string CUBEMAP_NAME =			"uCubemapSampler";
 const string TEXTURE_NAME =			"uTextureSampler";
@@ -56,7 +57,7 @@ void VisualizerApp::setup()
 	setupGUI();
 	setupDS();
 	setupScene();
-	setupSkybox("movies/Aa.mov");
+	setupSkybox("movies/oniria.mp4");
 
 	setupPointCloud(	{"shaders/pointcloud_vertex.glsl","shaders/pointcloud_fragment.glsl"},
 						{{ CUBEMAP_NAME, CUBEMAP_UNIT },{ TEXTURE_NAME, TEXTURE_UNIT }});
@@ -72,6 +73,19 @@ void VisualizerApp::keyDown(KeyEvent pEvent)
 {
 	if (pEvent.getChar() == 'd')
 		mDrawGUI = !mDrawGUI;
+	if (pEvent.getChar() == 'f')
+	{
+		if (getWindow()->isFullScreen())
+		{
+			getWindow()->setFullScreen(false);
+			getWindow()->setSize(WINDOW_SIZE);
+		}
+		else
+		{
+			getWindow()->setFullScreen(true);
+			getWindow()->setSize(PRODUCTION_SIZE);
+		}
+	}
 }
 void VisualizerApp::update()
 {
