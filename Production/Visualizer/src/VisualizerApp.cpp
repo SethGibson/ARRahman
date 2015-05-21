@@ -1,15 +1,7 @@
 #ifndef _DEBUG
 #pragma comment(lib, "DSAPI32.lib")
-#pragma comment(lib, "BulletCollision_vs2010.lib")
-#pragma comment(lib, "BulletDynamics_vs2010.lib")
-#pragma comment(lib, "BulletSoftBody_vs2010.lib")
-#pragma comment(lib, "LinearMath_vs2010.lib")
 #else
 #pragma comment(lib, "DSAPI32.dbg.lib")
-#pragma comment(lib, "BulletCollision_vs2010_debug.lib")
-#pragma comment(lib, "BulletDynamics_vs2010_debug.lib")
-#pragma comment(lib, "BulletSoftBody_vs2010_debug.lib")
-#pragma comment(lib, "LinearMath_vs2010_debug.lib")
 #endif
 #include "VisualizerApp.h"
 #include "cinder/ObjLoader.h"
@@ -34,6 +26,7 @@ const string MAT_MODEL_NAME =		"uModelMatrix";
 const string MAT_PROJ_NAME =		"uProjMatrix";
 const string LIGHT_POS_NAME =		"uLightPosition";
 const string VIEW_DIR_NAME =		"uViewDirection";
+const string TEX_MIN_NAME =			"uTextureMinimum";
 const string SPEC_POW_NAME =		"uSpecularPower";
 const string SPEC_STR_NAME =		"uSpecularStrength";
 const string FRES_POW_NAME =		"uFresnelPower";
@@ -60,7 +53,6 @@ void VisualizerApp::setup()
 	setupGUI();
 	setupDS();
 	setupScene();
-	setupSkybox("movies/" + PRODUCTION_FILENAME);
 
 	setupPointCloud(	{"shaders/pointcloud_vertex.glsl","shaders/pointcloud_fragment.glsl"},
 						{{ CUBEMAP_NAME, CUBEMAP_UNIT },{ TEXTURE_NAME, TEXTURE_UNIT }});
@@ -92,19 +84,13 @@ void VisualizerApp::keyDown(KeyEvent pEvent)
 }
 void VisualizerApp::update()
 {
-	updateMovie();
 	updatePointCloud();
 	updateParticles();
-	updateFBOs();
 }
 
 void VisualizerApp::draw()
 {
 	gl::clear( Color( 0, 0, 0 ) ); 
-
-	//draw bg
-	gl::setMatricesWindow(getWindowSize());
-	drawSkybox();
 
 	//draw 3d
 	gl::setMatrices(mCamera);
@@ -113,7 +99,6 @@ void VisualizerApp::draw()
 
 	//draw 2d
 	gl::setMatricesWindow(getWindowSize());
-	drawFBO();
 	if (mDrawGUI)
 		mGUI->draw();
 }
@@ -142,11 +127,15 @@ void VisualizerApp::setupGUI()
 	mParamPointcloudMaxDepth = 2000.0f,
 	mParamPointcloudStep = 1;
 	mParamPointcloudSize = 5.0f; //if spheres, 1.5f, if cubes, either 2.0f or something large for overlap (like 5.0f), depending on camera angle.
+	mParamPointcloudTextureMinR = 0.025f;
+	mParamPointcloudTextureMinG = 0.025f;
+	mParamPointcloudTextureMinB = 0.025f;
 	mParamPointcloudSpecularPower = 8.0f;
 	mParamPointcloudSpecularStrength = 0.0f;
 	mParamPointcloudFresnelPower = 2.0f;
 	mParamPointcloudFresnelStrength = 1.0f;
 	mParamPointcloudReflectionStrength = 1.0f;
+	mParamPointcloudAmbientStrength = 1.0f;
 	mParamPointcloudLightPositionX = 0.0f;
 	mParamPointcloudLightPositionY = 500.0f;
 	mParamPointcloudLightPositionZ = 0.0f;
@@ -166,11 +155,15 @@ void VisualizerApp::setupGUI()
 	mGUI->addParam<float>("cloudMaxDepth", &mParamPointcloudMaxDepth).optionsStr("label='Max Depth'");
 	mGUI->addParam<int>("cloudRes", &mParamPointcloudStep).optionsStr("label='Resolution'");
 	mGUI->addParam<float>("cloudSize", &mParamPointcloudSize).optionsStr("label='Point Size'");
+	mGUI->addParam<float>("cloudTexMinR", &mParamPointcloudTextureMinR).optionsStr("label='Texture Min R'");
+	mGUI->addParam<float>("cloudTexMinG", &mParamPointcloudTextureMinG).optionsStr("label='Texture Min G'");
+	mGUI->addParam<float>("cloudTexMinB", &mParamPointcloudTextureMinB).optionsStr("label='Texture Min B'");
 	mGUI->addParam<float>("cloudSpecularPower", &mParamPointcloudSpecularPower).optionsStr("label='Highlight Size'");
 	mGUI->addParam<float>("cloudSpecularStrength", &mParamPointcloudSpecularStrength).optionsStr("label='Highlight Strength'");
 	mGUI->addParam<float>("cloudFresnelPower", &mParamPointcloudFresnelPower).optionsStr("label='Rimlight Size'");
 	mGUI->addParam<float>("cloudFresnelStrength", &mParamPointcloudFresnelStrength).optionsStr("label='Rimlight Strength'");
 	mGUI->addParam<float>("cloudReflectionStrength", &mParamPointcloudReflectionStrength).optionsStr("label='Reflection Strength'");
+	mGUI->addParam<float>("cloudAmbientStrength", &mParamPointcloudAmbientStrength).optionsStr("label='Ambient Strength'");
 	mGUI->addParam<float>("cloudLightX", &mParamPointcloudLightPositionX).optionsStr("label='Light Position X'");
 	mGUI->addParam<float>("cloudLightY", &mParamPointcloudLightPositionY).optionsStr("label='Light Position Y'");
 	mGUI->addParam<float>("cloudLightZ", &mParamPointcloudLightPositionZ).optionsStr("label='Light Position Z'");
@@ -192,24 +185,6 @@ void VisualizerApp::setupScene()
 	mCamera.setPivotDistance(500.0f);
 
 	mCameraUi = CameraUi(&mCamera, getWindow());
-}
-
-void VisualizerApp::setupSkybox(string pMovieFile)
-{
-	try
-	{
-		mBackgroundPlayer = qtime::MovieGl::create(loadAsset(pMovieFile));
-		mBackgroundPlayer ->setLoop();
-		mBackgroundPlayer->play();
-		mBackgroundSize = vec2(mBackgroundPlayer->getSize());
-	}
-	catch (ci::Exception &exc)
-	{
-		console() << "Exception caught trying to load the movie from path: " << pMovieFile << ", what: " << exc.what() << std::endl;
-		mBackgroundPlayer.reset();
-	}
-	mBackgroundTexture.reset();
-	
 }
 
 void VisualizerApp::setupPointCloud(pair<string, string> pShaders, vector<pair<string,int>> pSamplerUniforms)
@@ -281,10 +256,6 @@ void VisualizerApp::setupFBOs()
 	mParticlesBlurShader->uniform(TEXTURE_NAME, TEXTURE_UNIT);
 }
 
-void VisualizerApp::setupPhysics()
-{
-	mPhysicsContext = bullet::Context::create(bullet::Context::Format().drawDebug(true).createDebugRenderer(true));
-}
 #pragma endregion
 
 #pragma region Update Methods
@@ -387,24 +358,9 @@ void VisualizerApp::updateFBOs()
 	mParticlesBlurURT->unbindTexture(TEXTURE_UNIT);
 	mParticlesBlurVRT->unbindFramebuffer();
 }
-
-void VisualizerApp::updateMovie()
-{
-	if (mBackgroundPlayer)
-		mBackgroundTexture = mBackgroundPlayer->getTexture();
-}
-
 #pragma endregion
 
 #pragma region Draw Methods
-void VisualizerApp::drawSkybox()
-{
-	gl::disableDepthRead();
-	if (mBackgroundTexture)
-		gl::draw(mBackgroundTexture, Rectf({vec2(0), getWindowSize()}));
-	gl::enableDepthRead();
-}
-
 void VisualizerApp::drawPointCloud()
 {
 	gl::enableDepthRead();
@@ -412,12 +368,14 @@ void VisualizerApp::drawPointCloud()
 		mBackgroundTexture->bind(CUBEMAP_UNIT);
 	mPointcloudTexture->bind(TEXTURE_UNIT);
 	mPointcloudBatch->getGlslProg()->uniform(LIGHT_POS_NAME, vec3(mParamPointcloudLightPositionX, mParamPointcloudLightPositionY, mParamPointcloudLightPositionZ));
+	mPointcloudBatch->getGlslProg()->uniform(TEX_MIN_NAME, vec3(mParamPointcloudTextureMinR, mParamPointcloudTextureMinG, mParamPointcloudTextureMinB));
 	mPointcloudBatch->getGlslProg()->uniform(VIEW_DIR_NAME, mCamera.getEyePoint());
 	mPointcloudBatch->getGlslProg()->uniform(SPEC_POW_NAME, mParamPointcloudSpecularPower);
 	mPointcloudBatch->getGlslProg()->uniform(SPEC_STR_NAME, mParamPointcloudSpecularStrength);
 	mPointcloudBatch->getGlslProg()->uniform(FRES_POW_NAME, mParamPointcloudFresnelPower);
 	mPointcloudBatch->getGlslProg()->uniform(FRES_STR_NAME, mParamPointcloudFresnelStrength);
 	mPointcloudBatch->getGlslProg()->uniform(REFL_STR_NAME, mParamPointcloudReflectionStrength);
+	mPointcloudBatch->getGlslProg()->uniform(AMB_STR_NAME, mParamPointcloudAmbientStrength);
 	mPointcloudBatch->getGlslProg()->uniform(MOVIE_SIZE_NAME, mBackgroundSize);
 	mPointcloudBatch->drawInstanced(mPointcloudPoints.size());
 	mPointcloudTexture->unbind();
