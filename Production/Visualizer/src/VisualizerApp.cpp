@@ -185,6 +185,9 @@ void VisualizerApp::setupScene()
 	mCamera.setPivotDistance(500.0f);
 
 	mCameraUi = CameraUi(&mCamera, getWindow());
+	gl::enableDepthRead();
+	gl::disableDepthWrite();
+	gl::enableAlphaBlending();
 }
 
 void VisualizerApp::setupPointCloud(pair<string, string> pShaders, vector<pair<string,int>> pSamplerUniforms)
@@ -386,8 +389,6 @@ void VisualizerApp::drawPointCloud()
 
 void VisualizerApp::drawParticles()
 {
-	gl::enableDepthRead();
-	gl::enableAlphaBlending();
 	mParticlesTexture->bind(TEXTURE_UNIT);
 	mParticlesBatch->getGlslProg()->uniform(LIGHT_POS_NAME, vec3(mParamPointcloudLightPositionX, mParamPointcloudLightPositionY, mParamPointcloudLightPositionZ));
 	mParticlesBatch->getGlslProg()->uniform(VIEW_DIR_NAME, mCamera.getViewDirection());
@@ -396,8 +397,6 @@ void VisualizerApp::drawParticles()
 	mParticlesBatch->getGlslProg()->uniform(AMB_STR_NAME, mParamParticlesAmbientStrength);
 	mParticlesBatch->drawInstanced(mParticlesPoints.size());
 	mParticlesTexture->unbind();
-	gl::disableAlphaBlending();
-	gl::disableDepthRead();
 }
 
 void VisualizerApp::drawFBO()
