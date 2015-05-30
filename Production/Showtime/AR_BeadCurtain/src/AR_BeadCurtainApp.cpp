@@ -92,10 +92,7 @@ void AR_BeadCurtainApp::update()
 {
 	float eyeX = 0.25f*math<float>::sin(getElapsedFrames()*0.01f);
 	float eyeY = 0.25f*math<float>::cos(getElapsedFrames()*0.01f);
-	//float eyePosX = (-2.25f*math<float>::cos(M_PI / 2.0f)) - eyeOffset;
-	//float eyePosZ = (-2.25f*math<float>::sin(M_PI / 2.0f)) - eyeOffset;
 	mCamera.lookAt(vec3(eyeX, eyeY, -2.25f), vec3(0), vec3(0, 1, 0));
-
 }
 
 void AR_BeadCurtainApp::draw()
