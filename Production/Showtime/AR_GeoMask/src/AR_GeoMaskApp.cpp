@@ -47,17 +47,13 @@ public:
 		void Step(float pFrames)
 		{
 			PPosition.z -= PSpeed;
+			float nPos = 5.0f;
 			if (PPosition.z >= 15.0f)
-			{
-				float nPos = 20.0f - PPosition.z;
-				PAlpha = lmap<float>(nPos, 5.0f, 0.0f, 1.0f, 0.0f);
-			}
+				nPos = 20.0f - PPosition.z;
 			else if (PPosition.z <= -15.0f)
-			{
-				float nPos = PPosition.z + 20.0f;
-				PAlpha = lmap<float>(nPos, 5.0f, 0.0f, 1.0f, 0.0f);
-			}
-			
+				nPos = PPosition.z + 20.0f;
+			PAlpha = lmap<float>(nPos, 5.0f, 0.0f, 1.0f, 0.0f);
+
 			PModelMatrix = mat4();
 			PModelMatrix *= glm::translate(PModelMatrix, PPosition);
 
