@@ -1,3 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug_ANGLE|Win32">
@@ -268,7 +269,14 @@ xcopy /y "..\..\..\..\..\..\..\libs\Cinder\lib\msw\x86\d3dcompiler_46.dll" "$(Ou
   <ItemGroup>
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="..\assets\shaders\blur_frag.glsl" />
+    <None Include="..\assets\shaders\blur_vert.glsl" />
+    <None Include="..\assets\shaders\comp_frag.glsl" />
+    <None Include="..\assets\shaders\passthru_vert.glsl" />
+    <None Include="..\assets\shaders\torus_frag.glsl" />
+    <None Include="..\assets\shaders\torus_vert.glsl" />
+  </ItemGroup>
   <ItemGroup />
   <ItemGroup>
     <ClCompile Include="..\src\AR_DisplaceApp.cpp" />
