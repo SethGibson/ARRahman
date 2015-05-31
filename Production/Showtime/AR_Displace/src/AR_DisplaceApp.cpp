@@ -12,7 +12,7 @@ using namespace ci;
 using namespace ci::app;
 using namespace std;
 
-static int S_MAX_RINGS = 5;
+static int S_MAX_RINGS = 10;
 static const vec2 S_BLUR_U = vec2(1.0, 0.0);
 static const vec2 S_BLUR_V = vec2(0.0, 1.0);
 
@@ -46,8 +46,8 @@ public:
 			Position.y = 0.0f;
 			Center = Position;
 			
-			OuterRadius = randFloat(0.25f, 0.4f);
-			InnerRadius = OuterRadius - randFloat(0.0025f, 0.0075f);
+			OuterRadius = randFloat(0.1f, 0.4f);
+			InnerRadius = OuterRadius - randFloat(0.001f, 0.0075f);
 			
 			RingShape = gl::VboMesh::create(geom::Torus().radius(OuterRadius, InnerRadius).subdivisionsHeight(4).subdivisionsAxis(64));
 			RingColor = ColorA(randFloat(0.25f, 1.0f), randFloat(0.1f,0.25f), randFloat(0.25f, 1.0f), 1.0f);
@@ -82,17 +82,22 @@ private:
 	CameraPersp		mCamera;
 
 	gl::GlslProgRef	mRingShader,
-					mBlurShader;
+					mBlurShader,
+					mCompShader;
 
 	gl::FboRef		mRawFbo,
 					mBlurHFbo,
-					mBlurVFbo;
+					mBlurVFbo,
+					mCompFbo;
 
 	params::InterfaceGlRef mGUI;
 	float					mParamBlurStrength,
 							mParamBlurSizeU,
-							mParamBlurSizeV;
+							mParamBlurSizeV,
+							mParamDisplaceAmt;
 	
+	//DEBUG
+	gl::Texture2dRef		mTexDepth;
 };
 
 void AR_DisplaceApp::setup()
@@ -108,6 +113,8 @@ void AR_DisplaceApp::setup()
 	setupGUI();
 	setupShaders();
 	setupFBO();
+
+	mTexDepth = gl::Texture2d::create(loadImage(loadAsset("textures/test_depthmap_blurred.png")));
 }
 
 void AR_DisplaceApp::update()
@@ -132,6 +139,7 @@ void AR_DisplaceApp::draw()
 	gl::color(Color::white());
 	gl::setMatricesWindow(getWindowSize());
 
+	/*
 	gl::enableAlphaBlending();
 	gl::draw(mRawFbo->getColorTexture());
 	gl::disableAlphaBlending();
@@ -139,7 +147,9 @@ void AR_DisplaceApp::draw()
 	gl::enableAdditiveBlending();
 	gl::draw(mBlurVFbo->getColorTexture());
 	gl::disableAlphaBlending();
+	*/
 
+	gl::draw(mCompFbo->getColorTexture());
 	mGUI->draw();
 }
 
@@ -148,11 +158,13 @@ void AR_DisplaceApp::setupGUI()
 	mParamBlurSizeU = 1.0f;
 	mParamBlurSizeV = 1.0f;
 	mParamBlurStrength = 1.0f;
+	mParamDisplaceAmt = 0.025f;
 
 	mGUI = params::InterfaceGl::create("Params", ivec2(300, 200));
 	mGUI->addParam<float>("paramBlurU", &mParamBlurSizeU).optionsStr("label = 'Blur Width'");
 	mGUI->addParam<float>("paramBlurV", &mParamBlurSizeV).optionsStr("label = 'Blur Height'");
 	mGUI->addParam<float>("paramBlurStr", &mParamBlurStrength).optionsStr("label = 'Blur Strength'");
+	mGUI->addParam<float>("paramDisplace", &mParamDisplaceAmt).optionsStr("label = 'Diplacement'");
 }
 
 void AR_DisplaceApp::setupShaders()
@@ -161,6 +173,11 @@ void AR_DisplaceApp::setupShaders()
 	
 	mBlurShader = gl::GlslProg::create(loadAsset("shaders/blur_vert.glsl"), loadAsset("shaders/blur_frag.glsl"));
 	mBlurShader->uniform("uTextureSampler", 0);
+
+	mCompShader = gl::GlslProg::create(loadAsset("shaders/passthru_vert.glsl"), loadAsset("shaders/comp_frag.glsl"));
+	mCompShader->uniform("uTextureRgbSampler",0);
+	mCompShader->uniform("uTextureBloomSampler", 1);
+	mCompShader->uniform("uTextureDepthSampler", 2);
 }
 
 void AR_DisplaceApp::setupFBO()
@@ -168,6 +185,7 @@ void AR_DisplaceApp::setupFBO()
 	mRawFbo = gl::Fbo::create(960, 540,gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA)));
 	mBlurHFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().dataType(GL_FLOAT).internalFormat(GL_RGBA32F)));
 	mBlurVFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().dataType(GL_FLOAT).internalFormat(GL_RGBA32F)));
+	mCompFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA)));
 }
 
 void AR_DisplaceApp::drawFBO()
@@ -190,7 +208,7 @@ void AR_DisplaceApp::drawFBO()
 
 	/////////////////////////////////////////////////////
 	mBlurHFbo->bindFramebuffer();
-	gl::enableAdditiveBlending();
+	gl::enableAlphaBlending();
 	gl::setMatricesWindow(getWindowSize());
 	gl::clear(ColorA::zero());
 
@@ -207,7 +225,7 @@ void AR_DisplaceApp::drawFBO()
 
 	/////////////////////////////////////////////////////
 	mBlurVFbo->bindFramebuffer();
-	gl::enableAdditiveBlending();
+	gl::enableAlphaBlending();
 	gl::setMatricesWindow(getWindowSize());
 	gl::clear(ColorA::zero());
 
@@ -220,6 +238,25 @@ void AR_DisplaceApp::drawFBO()
 
 	gl::disableAlphaBlending();
 	mBlurVFbo->unbindFramebuffer();
+
+	/////////////////////////////////////////////////////
+	mCompFbo->bindFramebuffer();
+	gl::enableAlphaBlending();
+	gl::setMatricesWindow(getWindowSize());
+	gl::clear(ColorA::zero());
+
+	mCompShader->bind();
+	mCompShader->uniform("uDisplacementAmount", mParamDisplaceAmt);
+	mRawFbo->bindTexture(0);
+	mBlurVFbo->bindTexture(1);
+	mTexDepth->bind(2);
+	gl::drawSolidRect(Rectf({ vec2(0), getWindowSize() }));
+
+	mTexDepth->unbind();
+	mBlurVFbo->unbindTexture();
+	mRawFbo->unbindTexture();
+	gl::disableAlphaBlending();
+	mCompFbo->unbindFramebuffer();
 }
 
 CINDER_APP( AR_DisplaceApp, RendererGl(RendererGl::Options().msaa(16)) )
