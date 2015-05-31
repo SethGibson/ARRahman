@@ -16,6 +16,12 @@
     <Filter Include="Source Files\shaders">
       <UniqueIdentifier>{353afc4c-119c-4e03-a633-bbcaf3467817}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\blocks">
+      <UniqueIdentifier>{b6d3e37b-99c8-40b0-9f24-7c761f069fb8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\blocks\Cinder-DSAPI">
+      <UniqueIdentifier>{eca20179-7be5-4bab-b711-1019af2f1675}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\AR_GeoMaskApp.cpp">
@@ -27,10 +33,16 @@
     <ClInclude Include="..\include\Resources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClCompile Include="..\src\blocks\Cinder-DSAPI\src\CiDSAPI.cpp">
+      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Resources.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\blocks\Cinder-DSAPI\src\CiDSAPI.h">
+      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -49,6 +61,12 @@
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\particle_vert.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\cloud_frag.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\cloud_vert.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

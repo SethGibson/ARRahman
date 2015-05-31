@@ -12,14 +12,15 @@ out vec4 FragColor;
 
 void main()
 {
-	vec3 cNormal = normalize(Normal);
-	vec3 cLightDir = normalize(LightPosition-vec3(FragPos.xyz));
-	vec3 cEyeDir = normalize(ViewDirection);
-	vec3 cHalfV = normalize(cLightDir+cEyeDir);
+	vec3 normal = normalize(Normal);
+	vec3 lightDir = normalize(LightPosition-vec3(FragPos.xyz));
+	vec3 eyeDir = normalize(ViewDirection);
+	vec3 halfV = normalize(lightDir+eyeDir);
 
-	vec3 cRefl = reflect(cLightDir, cNormal);
-	float diffTerm = max(dot(cNormal,cLightDir),0.0);
-	float cSpecTerm = pow( max( dot(cEyeDir, cRefl), 0), SpecPow);
+	vec3 reflTerm = reflect(lightDir, normal);
+	float diffTerm = max(dot(normal,lightDir),0.0);
+	float specTerm = pow( max( dot(eyeDir, reflTerm), 0), SpecPow);
+	vec4 specColor = Color*specTerm;
 
-	FragColor = Color*diffTerm+cSpecTerm*SpecStr;
+	FragColor = Color*diffTerm+specColor*SpecStr;
 }

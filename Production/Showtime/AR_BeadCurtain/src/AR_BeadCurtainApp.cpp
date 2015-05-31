@@ -15,7 +15,7 @@ using namespace std;
 
 static ivec2 S_WINDOW_SIZE(960, 540);
 static int S_ROW_STEP = 30;
-static int S_COL_STEP = 60;
+static int S_COL_STEP = 40;
 
 
 class AR_BeadCurtainApp : public App
