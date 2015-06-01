@@ -13,8 +13,8 @@ void main()
 
 	float depthSample = texture(uTextureDepthSampler, UV).r;
 	
-	vec4 colorSample = texture(uTextureRgbSampler, UV+depthSample*(uDisplacementAmount*distFromCenter));
-	vec4 bloomSample = texture(uTextureBloomSampler, UV+depthSample*(uDisplacementAmount*distFromCenter));
+	vec4 colorSample = texture(uTextureRgbSampler, UV+depthSample*uDisplacementAmount*vec2(-distFromCenter.x,0.0));
+	vec4 bloomSample = texture(uTextureBloomSampler, UV+depthSample*uDisplacementAmount*vec2(-distFromCenter.x,0.0));
 	
 	FragColor = colorSample+bloomSample;
 }

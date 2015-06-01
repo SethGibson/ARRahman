@@ -19,7 +19,7 @@ using namespace ci::app;
 using namespace std;
 using namespace CinderDS;
 
-static int S_MAX_RINGS = 10;
+static int S_MAX_RINGS = 20;
 static const vec2 S_BLUR_U = vec2(1.0, 0.0);
 static const vec2 S_BLUR_V = vec2(0.0, 1.0);
 
@@ -30,15 +30,16 @@ public:
 	{
 		vec3				Position, Center;
 		float				InnerRadius,
-			OuterRadius,
-			RotationSpeed;
+							OuterRadius,
+							RotationSpeed;
 
 		int					Age, Life;
 		ColorA				RingColor;
 
 		gl::VboMeshRef		RingShape;
 
-		Ringu()
+		Ringu(){}
+		Ringu(int subdivs)
 		{
 			Position = randVec3()*randFloat(0.01f, 0.1f);
 			Position.y = 0.0f;
@@ -47,10 +48,10 @@ public:
 			OuterRadius = randFloat(0.1f, 0.4f);
 			InnerRadius = OuterRadius - randFloat(0.001f, 0.0075f);
 
-			RingShape = gl::VboMesh::create(geom::Torus().radius(OuterRadius, InnerRadius).subdivisionsHeight(4).subdivisionsAxis(64));
+			RingShape = gl::VboMesh::create(geom::Torus().radius(OuterRadius, InnerRadius).subdivisionsHeight(4).subdivisionsAxis(subdivs+4));
 			RingColor = ColorA(randFloat(0.25f, 1.0f), randFloat(0.1f, 0.25f), randFloat(0.25f, 1.0f), 1.0f);
 
-			Life = randInt(60, 240);
+			Life = randInt(120, 240);
 			Age = Life;
 			RotationSpeed = randFloat(0.005, 0.01f);
 			if (Center.x<0)
@@ -64,7 +65,7 @@ public:
 
 			Age--;
 			float normAge = 1.0f;
-			float fadeTime = Life / 3.0f;
+			float fadeTime = Life / 2.0f;
 
 			if (Age > (Life - fadeTime))
 				normAge = (Life - Age) / fadeTime;
@@ -113,20 +114,27 @@ private:
 	//Depth map
 	CinderDSRef				mDS;
 	gl::Texture2dRef		mTexDepth;
+	gl::Texture2dRef		mTexRawDepth;
 
 	gl::GlslProgRef			mDepthShader;
 	gl::FboRef				mDepthFbo;
+
+	int						mSubdId;
+	int						mTimer;
+	int						mSpawnTime;
 };
 
 void AR_DisplaceApp::setup()
 {
+	mSubdId = 0;
 	getWindow()->setSize(960, 540);
 	setFrameRate(60.0f);
 	
 	mCamera.setPerspective(45.0f, getWindowAspectRatio(), 0.01f, 1.0f);
 	mCamera.lookAt(vec3(0, -1, 0), vec3(0), vec3(0, 0, 1));
 
-	mRings.push_back(Ringu());
+	mRings.push_back(Ringu(mSubdId));
+	mSubdId = (mSubdId + 1) % 3;
 	
 	setupGUI();
 	setupShaders();
@@ -138,7 +146,10 @@ void AR_DisplaceApp::setup()
 void AR_DisplaceApp::update()
 {
 	if (mRings.size() < S_MAX_RINGS)
-		mRings.push_back(Ringu());
+	{
+		mRings.push_back(Ringu(mSubdId));
+		mSubdId = (mSubdId + 1) % 3;
+	}
 	for (auto r = mRings.begin(); r != mRings.end();)
 	{
 		r->Step(getElapsedFrames());
@@ -155,10 +166,13 @@ void AR_DisplaceApp::draw()
 {
 	gl::clear(Color::black());
 	gl::color(Color::white());
+	
 	gl::setMatricesWindow(getWindowSize());
-
-	gl::draw(mCompFbo->getColorTexture());
-
+	gl::pushMatrices();
+	gl::scale(vec3(-1, 1,1));
+	gl::translate(vec3(-960, 0, 0));
+	gl::draw(mCompFbo->getColorTexture(), vec2(0));
+	gl::popMatrices();
 	mGUI->draw();
 }
 
@@ -194,6 +208,8 @@ void AR_DisplaceApp::setupShaders()
 
 	mDepthShader = gl::GlslProg::create(loadAsset("shaders/passthru_vert.glsl"), loadAsset("shaders/depth_remap_frag.glsl"));
 	mDepthShader->uniform("uDepthSampler", 0);
+
+	mTexRawDepth = gl::Texture2d::create(480, 360, gl::Texture2d::Format().dataType(GL_HALF_FLOAT).internalFormat(GL_R16F));
 }
 
 void AR_DisplaceApp::setupFBO()
@@ -214,15 +230,20 @@ void AR_DisplaceApp::setupDS()
 	mTexDepth = gl::Texture2d::create(480, 360);
 
 	mDS->start();
+
+
+
 }
 
 void AR_DisplaceApp::updateDS()
 {
 	mDS->update();
+	
 	Surface8u rgbSrf(480, 360,false);
 	auto rgbIter = rgbSrf.getIter();
 	auto depthChan = mDS->getDepthFrame().getData();
-	
+	mTexRawDepth->update(mDS->getDepthFrame());
+
 	while (rgbIter.line())
 	{
 		while (rgbIter.pixel())
@@ -262,6 +283,7 @@ void AR_DisplaceApp::drawFBO()
 	{
 		gl::pushMatrices();
 		gl::translate(r.Position);
+		gl::rotate(getElapsedFrames()*r.RotationSpeed, vec3(0, 1, 0));
 		mRingShader->uniform("uColor", r.RingColor);
 		gl::draw(r.RingShape);
 		gl::popMatrices();

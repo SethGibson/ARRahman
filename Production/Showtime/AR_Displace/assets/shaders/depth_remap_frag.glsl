@@ -22,6 +22,7 @@ void main()
 		float c = lmap(d,0.0,uDepthMax,1.0,0.0);
 		outColor = vec4(c,c,c,1.0);
 	}
+
 	else if (d<=0||d>=uErrorTerm)
 		outColor = vec4(0.0,0.0,0.0,1.0);
 	FragColor = outColor;

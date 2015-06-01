@@ -157,6 +157,11 @@ namespace CinderDS
 
 	bool CinderDSAPI::start()
 	{
+		//auto fB = mDSAPI->getZToDisparityConstant(); //typically ~32,000
+		//disparity = fB/z [disparity is 0 to 63.5]
+		//noise is always ~ 0.1 disparities (std deviation)
+		//try using ~ 0.35 as a threshold
+
 		return mDSAPI->startCapture();
 	}
 
