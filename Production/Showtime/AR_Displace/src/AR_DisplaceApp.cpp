@@ -1,3 +1,8 @@
+#ifdef _DEBUG
+#pragma comment(lib, "DSAPI.dbg.lib")
+#else
+#pragma comment(lib, "DSAPI.lib")
+#endif
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/Camera.h"
@@ -7,10 +12,12 @@
 #include "cinder/gl/GlslProg.h"
 #include "cinder/params/Params.h"
 #include "cinder/Rand.h"
+#include "Cinder-DSAPI/src/CiDSAPI.h"
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
+using namespace CinderDS;
 
 static int S_MAX_RINGS = 10;
 static const vec2 S_BLUR_U = vec2(1.0, 0.0);
@@ -19,21 +26,12 @@ static const vec2 S_BLUR_V = vec2(0.0, 1.0);
 class AR_DisplaceApp : public App
 {
 public:
-	void setup() override;
-	void update() override;
-	void draw() override;
-
-	void setupShaders();
-	void setupFBO();
-	void setupGUI();
-	void drawFBO();
-
 	struct Ringu
 	{
 		vec3				Position, Center;
 		float				InnerRadius,
-							OuterRadius,
-							RotationSpeed;
+			OuterRadius,
+			RotationSpeed;
 
 		int					Age, Life;
 		ColorA				RingColor;
@@ -45,12 +43,12 @@ public:
 			Position = randVec3()*randFloat(0.01f, 0.1f);
 			Position.y = 0.0f;
 			Center = Position;
-			
+
 			OuterRadius = randFloat(0.1f, 0.4f);
 			InnerRadius = OuterRadius - randFloat(0.001f, 0.0075f);
-			
+
 			RingShape = gl::VboMesh::create(geom::Torus().radius(OuterRadius, InnerRadius).subdivisionsHeight(4).subdivisionsAxis(64));
-			RingColor = ColorA(randFloat(0.25f, 1.0f), randFloat(0.1f,0.25f), randFloat(0.25f, 1.0f), 1.0f);
+			RingColor = ColorA(randFloat(0.25f, 1.0f), randFloat(0.1f, 0.25f), randFloat(0.25f, 1.0f), 1.0f);
 
 			Life = randInt(60, 240);
 			Age = Life;
@@ -77,6 +75,20 @@ public:
 		}
 	};
 
+	void setup() override;
+	void update() override;
+	void draw() override;
+	void cleanup() override;
+
+	void setupShaders();
+	void setupFBO();
+	void setupGUI();
+	void setupDS();
+
+	void updateDS();
+
+	void drawFBO();
+
 private:
 	vector<Ringu>	mRings;
 	CameraPersp		mCamera;
@@ -94,10 +106,16 @@ private:
 	float					mParamBlurStrength,
 							mParamBlurSizeU,
 							mParamBlurSizeV,
-							mParamDisplaceAmt;
-	
-	//DEBUG
+							mParamDisplaceAmt,
+							mParamDepthMax,
+							mParamErrorTerm;
+
+	//Depth map
+	CinderDSRef				mDS;
 	gl::Texture2dRef		mTexDepth;
+
+	gl::GlslProgRef			mDepthShader;
+	gl::FboRef				mDepthFbo;
 };
 
 void AR_DisplaceApp::setup()
@@ -113,8 +131,8 @@ void AR_DisplaceApp::setup()
 	setupGUI();
 	setupShaders();
 	setupFBO();
+	setupDS();
 
-	mTexDepth = gl::Texture2d::create(loadImage(loadAsset("textures/test_depthmap_blurred.png")));
 }
 
 void AR_DisplaceApp::update()
@@ -129,7 +147,7 @@ void AR_DisplaceApp::update()
 		else
 			++r;
 	}
-
+	updateDS();
 	drawFBO();
 }
 
@@ -139,17 +157,8 @@ void AR_DisplaceApp::draw()
 	gl::color(Color::white());
 	gl::setMatricesWindow(getWindowSize());
 
-	/*
-	gl::enableAlphaBlending();
-	gl::draw(mRawFbo->getColorTexture());
-	gl::disableAlphaBlending();
-
-	gl::enableAdditiveBlending();
-	gl::draw(mBlurVFbo->getColorTexture());
-	gl::disableAlphaBlending();
-	*/
-
 	gl::draw(mCompFbo->getColorTexture());
+
 	mGUI->draw();
 }
 
@@ -159,12 +168,16 @@ void AR_DisplaceApp::setupGUI()
 	mParamBlurSizeV = 1.0f;
 	mParamBlurStrength = 1.0f;
 	mParamDisplaceAmt = 0.025f;
+	mParamDepthMax = 1000.0f;
+	mParamErrorTerm = 32768.0f;
 
 	mGUI = params::InterfaceGl::create("Params", ivec2(300, 200));
 	mGUI->addParam<float>("paramBlurU", &mParamBlurSizeU).optionsStr("label = 'Blur Width'");
 	mGUI->addParam<float>("paramBlurV", &mParamBlurSizeV).optionsStr("label = 'Blur Height'");
 	mGUI->addParam<float>("paramBlurStr", &mParamBlurStrength).optionsStr("label = 'Blur Strength'");
 	mGUI->addParam<float>("paramDisplace", &mParamDisplaceAmt).optionsStr("label = 'Diplacement'");
+	mGUI->addParam<float>("paramDepthMax", &mParamDepthMax).optionsStr("label = 'Max Depth'");
+	mGUI->addParam<float>("paramErrorTerm", &mParamErrorTerm).optionsStr("label = 'Error Term'");
 }
 
 void AR_DisplaceApp::setupShaders()
@@ -178,6 +191,9 @@ void AR_DisplaceApp::setupShaders()
 	mCompShader->uniform("uTextureRgbSampler",0);
 	mCompShader->uniform("uTextureBloomSampler", 1);
 	mCompShader->uniform("uTextureDepthSampler", 2);
+
+	mDepthShader = gl::GlslProg::create(loadAsset("shaders/passthru_vert.glsl"), loadAsset("shaders/depth_remap_frag.glsl"));
+	mDepthShader->uniform("uDepthSampler", 0);
 }
 
 void AR_DisplaceApp::setupFBO()
@@ -186,6 +202,53 @@ void AR_DisplaceApp::setupFBO()
 	mBlurHFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().dataType(GL_FLOAT).internalFormat(GL_RGBA32F)));
 	mBlurVFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().dataType(GL_FLOAT).internalFormat(GL_RGBA32F)));
 	mCompFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA)));
+	mDepthFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGB)));
+}
+
+void AR_DisplaceApp::setupDS()
+{
+	mDS = CinderDSAPI::create();
+	
+	mDS->init();
+	mDS->initDepth(FrameSize::DEPTHSD, 60);
+	mTexDepth = gl::Texture2d::create(480, 360);
+
+	mDS->start();
+}
+
+void AR_DisplaceApp::updateDS()
+{
+	mDS->update();
+	Surface8u rgbSrf(480, 360,false);
+	auto rgbIter = rgbSrf.getIter();
+	auto depthChan = mDS->getDepthFrame().getData();
+	
+	while (rgbIter.line())
+	{
+		while (rgbIter.pixel())
+		{
+			rgbIter.r() = 0;
+			rgbIter.g() = 0;
+			rgbIter.b() = 0;
+			float z = (float)depthChan[rgbIter.y() * 480 + rgbIter.x()];
+			if (z > 0.0f&&z < mParamDepthMax)
+			{
+				uint8_t color = (uint8_t)lmap<float>(z, 100.0f, mParamDepthMax, 255.0f, 0.0f);
+				rgbIter.r() = color;
+				rgbIter.g() = color;
+				rgbIter.b() = color;
+			}
+		}
+	}
+
+	mTexDepth->update(rgbSrf);
+
+	mDepthFbo->bindFramebuffer();
+	gl::setMatricesWindow(getWindowSize());
+	gl::clear(Color::black());
+	gl::color(Color::white());
+	gl::draw(mTexDepth, Rectf({vec2(0), getWindowSize()}));
+	mDepthFbo->unbindFramebuffer();
 }
 
 void AR_DisplaceApp::drawFBO()
@@ -249,14 +312,21 @@ void AR_DisplaceApp::drawFBO()
 	mCompShader->uniform("uDisplacementAmount", mParamDisplaceAmt);
 	mRawFbo->bindTexture(0);
 	mBlurVFbo->bindTexture(1);
-	mTexDepth->bind(2);
+	mDepthFbo->bindTexture(2);
 	gl::drawSolidRect(Rectf({ vec2(0), getWindowSize() }));
 
-	mTexDepth->unbind();
+	mDepthFbo->unbindTexture();
 	mBlurVFbo->unbindTexture();
 	mRawFbo->unbindTexture();
 	gl::disableAlphaBlending();
 	mCompFbo->unbindFramebuffer();
+	/////////////////////////////////////////////////////
+	//mDepthFbo
+}
+
+void AR_DisplaceApp::cleanup()
+{
+	mDS->stop();
 }
 
 CINDER_APP( AR_DisplaceApp, RendererGl(RendererGl::Options().msaa(16)) )

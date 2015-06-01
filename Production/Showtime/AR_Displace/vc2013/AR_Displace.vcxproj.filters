@@ -16,6 +16,12 @@
     <Filter Include="Source Files\shaders">
       <UniqueIdentifier>{35974ce0-19c2-4378-8fb2-c1f0f3c62010}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\blocks">
+      <UniqueIdentifier>{0a58420c-e722-4b3f-b1e6-217ce6523696}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\blocks\Cinder-DSAPI">
+      <UniqueIdentifier>{2dda83d9-5fe2-437e-ad46-7ad9d21bc1af}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\AR_DisplaceApp.cpp">
@@ -27,10 +33,16 @@
     <ClInclude Include="..\include\Resources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClCompile Include="..\src\blocks\Cinder-DSAPI\src\CiDSAPI.cpp">
+      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Resources.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\blocks\Cinder-DSAPI\src\CiDSAPI.h">
+      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -55,6 +67,9 @@
       <Filter>Source Files\shaders</Filter>
     </None>
     <None Include="..\assets\shaders\torus_vert.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="..\assets\shaders\depth_remap_frag.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>
