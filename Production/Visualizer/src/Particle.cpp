@@ -5,14 +5,20 @@ Particle::~Particle()
 
 Particle::Particle(vec3 pPos)
 {
-	PPosition = pPos + Rand::randVec3f() * Rand::randFloat(5.0f);
+	PPosition = pPos;// +Rand::randVec3f() * Rand::randFloat(5.0f);
+	PPosition.y -= 750;
 
 	mRotSpeed = randFloat(-1.f, 1.f);
-	mVelocity = Rand::randFloat(0.007f, 0.08f);  /// change the gravity here
-	mDirection = vec3(Rand::randFloat(-3.0f, 3.0f), -3.0f, Rand::randFloat(0.3f, 0.6f)); // change the direction of the particles.
+	mVelocity = vec3(randFloat(-5.0f, 5.0f), randFloat(0.2f, 0.7f), randFloat(-5.0f, 5.0f));
 
-	Age = Rand::randInt(450, 550);
-	PSize = randFloat(1.5f, 5.5f);
+	Age = Rand::randInt(1500, 2000);
+	PSize = randFloat(3.5f, 8.5f);
+	mLifeSpan = Age;
+	PModelMatrix = mat4();
+	PModelMatrix = glm::rotate(PModelMatrix, randFloat(-0.5f, 0.5f), vec3(0, 0, 1));
+	PModelMatrix = glm::rotate(PModelMatrix, randFloat(-0.5f, 0.5f), vec3(1, 0, 0));
+	PModelMatrix = glm::rotate(PModelMatrix, randFloat(-1, 1), vec3(0, 1, 0));
+
 }
 
 Particle::Particle(vec3 pPosition, vec2 pUV, float pSize) : PPosition(pPosition), PUV(pUV), PSize(pSize)
@@ -20,26 +26,30 @@ Particle::Particle(vec3 pPosition, vec2 pUV, float pSize) : PPosition(pPosition)
 
 }
 
-void Particle::Step(float pElapsed, const Perlin &pNoise, const vec3 &pRightDir)
+void Particle::Step(float pElapsed, const Perlin &pNoise)
 {
 	Age--;
 	if (Age>0)
 	{
-		float nX = PPosition.x * 0.005f;
-		float nY = PPosition.y * 0.005f;
-		float nZ = pElapsed * 0.1f;
-		float noise = pNoise.fBm(nX, nY, nZ) * 0.2;
+		PAlpha = math<float>::min(1, ((float)Age * 0.5f * (float)Age) / (float)mLifeSpan);
+
+		PPosition.y += mVelocity.y;
+		float cNoise = pNoise.fBm(vec3(PPosition.x*0.005f, PPosition.y*0.01f, PPosition.z*0.005f));
+		float cAngle = cNoise*15.0f;
+		PPosition.x += (cos(cAngle)*mVelocity.x*(1.0f-PAlpha))*0.1f;
+		PPosition.z += (sin(cAngle)*mVelocity.z*(1.0f - PAlpha))*0.1f;
+		mVelocity.x *= 1.001f;
+		mVelocity.y *= .99999f;
+		mVelocity.z *= 1.001f;
 
 		float elapsedFrames = pElapsed;
+		//PModelMatrix = mat4();
+		//PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(0, 0, 1));
+		//PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(1, 0, 0));
+		//PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(0, 1, 0));
+		//PModelMatrix = glm::translate(PModelMatrix, PPosition);
 
-		//update location and add perlin noise
-		PPosition += mDirection*mVelocity + noise;
 
-		PModelMatrix = mat4();
-		PModelMatrix = glm::translate(PModelMatrix, PPosition);
-		PModelMatrix = glm::translate(PModelMatrix, vec3(0,0,250));
-		PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(1, 0, 0));
-		PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(0, 1, 0));
-		PModelMatrix = glm::rotate(PModelMatrix, mRotSpeed *elapsedFrames* 0.2f, vec3(0, 0, 1));
+
 	}
 }

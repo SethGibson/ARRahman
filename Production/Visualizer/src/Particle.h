@@ -17,20 +17,21 @@ public:
 	Particle(vec3 pPosition, vec2 pUV, float pSize);	//Pointcloud Particle Constructor
 	~Particle();
 
-	void Step(float pElapsed, const Perlin &pNoise, const vec3 &pRightDir);
+	void Step(float pElapsed, const Perlin &pNoise);
 
 	mat4	PModelMatrix;
 	vec3	PPosition;
 	vec2	PUV;
 	int		Age;
 	float	PSize;
+	float	PAlpha;
 
 private:
-	vec3	mAcceleration,
-			mDirection;
+	vec3	mVelocity;
 
-	float	mRotSpeed,
-			mVelocity;
+	float	mRotSpeed;
+
+	int		mLifeSpan;
 };
 
 #endif

@@ -9,10 +9,12 @@ in vec2			ciTexCoord0;
 in mat4			iModelMatrix;
 in vec3			iPosition;
 in float		iSize;
+in float		iAlpha;
 
 out vec4		FragPos;
 out vec3		Normal;
 out vec2		UV;
+out float		Alpha;
 
 void main()
 {
@@ -22,6 +24,7 @@ void main()
 	FragPos = ciViewMatrix*iModelMatrix*vec4(finalPosition,1.0);
 	Normal = vec3(normalMatrix*vec4(ciNormal,0.0));
 	UV = ciTexCoord0;
+	Alpha = iAlpha;
 
 	gl_Position = ciProjectionMatrix*ciViewMatrix*iModelMatrix*vec4(finalPosition,1.0);
 }

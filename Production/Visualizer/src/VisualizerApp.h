@@ -12,8 +12,6 @@
 #include "cinder/params/Params.h"
 #include "cinder/qtime/QuickTimeGl.h"
 #include "CiDSAPI.h"
-#include "Cinder-Bullet3D/RigidBody.h"
-#include "Cinder-Bullet3D/BulletContext.h"
 #include "Particle.h"
 
 using namespace ci;
@@ -34,19 +32,14 @@ private:
 	void setupGUI();
 	void setupDS();
 	void setupScene();
-	void setupSkybox(string pMovieFile);
 	void setupPointCloud(pair<string, string> pShaders, vector<pair<string,int>> pSamplerUniforms);
 	void setupParticles(string pObjFile, string pTextureFile, pair<string, string> pShaders, vector<pair<string, int>> pSamplerUniforms);
 	void setupFBOs();
-	void setupPhysics();
 
 	void updatePointCloud();
 	void updateParticles();
 	void updateFBOs();
-	void updatePhysics();
-	void updateMovie();
 
-	void drawSkybox();
 	void drawPointCloud();
 	void drawParticles();
 	void drawFBO();
@@ -56,7 +49,6 @@ private:
 	//Scene
 	CameraPersp				mCamera;
 	CameraUi				mCameraUi;
-	bullet::ContextRef		mPhysicsContext;
 	
 	//Skybox
 	gl::TextureRef			mBackgroundTexture;
@@ -72,7 +64,6 @@ private:
 	gl::Texture2dRef		mPointcloudTexture;
 
 	//Particles
-	vector<bullet::RigidBodyRef>	mParticlesPhysicsBodies;
 	Perlin							mParticlesPerlin;
 	vector<Particle>				mParticlesPoints;
 	gl::BatchRef					mParticlesBatch;
@@ -105,10 +96,14 @@ private:
 	float					mParamPointcloudMinDepth,
 							mParamPointcloudMaxDepth,
 							mParamPointcloudSize,
+							mParamPointcloudTextureMinR,
+							mParamPointcloudTextureMinG,
+							mParamPointcloudTextureMinB,
 							mParamPointcloudSpecularPower,
 							mParamPointcloudSpecularStrength,
 							mParamPointcloudFresnelPower,
 							mParamPointcloudFresnelStrength,
+							mParamPointcloudAmbientStrength,
 							mParamPointcloudReflectionStrength,
 							mParamPointcloudLightPositionX,
 							mParamPointcloudLightPositionY,
