@@ -19,7 +19,7 @@ using namespace ci::app;
 using namespace std;
 using namespace CinderDS;
 
-static int S_MAX_RINGS = 20;
+static int S_MAX_RINGS = 10;
 static const vec2 S_BLUR_U = vec2(1.0, 0.0);
 static const vec2 S_BLUR_V = vec2(0.0, 1.0);
 
@@ -38,17 +38,16 @@ public:
 
 		gl::VboMeshRef		RingShape;
 
-		Ringu(){}
-		Ringu(int subdivs)
+		Ringu()
 		{
-			Position = randVec3()*randFloat(0.01f, 0.1f);
+			Position = randVec3()*randFloat(0.05f, 0.25f);
 			Position.y = 0.0f;
 			Center = Position;
 
 			OuterRadius = randFloat(0.1f, 0.4f);
 			InnerRadius = OuterRadius - randFloat(0.001f, 0.0075f);
 
-			RingShape = gl::VboMesh::create(geom::Torus().radius(OuterRadius, InnerRadius).subdivisionsHeight(4).subdivisionsAxis(subdivs+4));
+			RingShape = gl::VboMesh::create(geom::Torus().radius(OuterRadius, InnerRadius).subdivisionsHeight(4).subdivisionsAxis(64));
 			RingColor = ColorA(randFloat(0.25f, 1.0f), randFloat(0.1f, 0.25f), randFloat(0.25f, 1.0f), 1.0f);
 
 			Life = randInt(120, 240);
@@ -119,22 +118,19 @@ private:
 	gl::GlslProgRef			mDepthShader;
 	gl::FboRef				mDepthFbo;
 
-	int						mSubdId;
 	int						mTimer;
 	int						mSpawnTime;
 };
 
 void AR_DisplaceApp::setup()
 {
-	mSubdId = 0;
 	getWindow()->setSize(960, 540);
 	setFrameRate(60.0f);
 	
 	mCamera.setPerspective(45.0f, getWindowAspectRatio(), 0.01f, 1.0f);
 	mCamera.lookAt(vec3(0, -1, 0), vec3(0), vec3(0, 0, 1));
 
-	mRings.push_back(Ringu(mSubdId));
-	mSubdId = (mSubdId + 1) % 3;
+	mRings.push_back(Ringu());
 	
 	setupGUI();
 	setupShaders();
@@ -147,8 +143,7 @@ void AR_DisplaceApp::update()
 {
 	if (mRings.size() < S_MAX_RINGS)
 	{
-		mRings.push_back(Ringu(mSubdId));
-		mSubdId = (mSubdId + 1) % 3;
+		mRings.push_back(Ringu());
 	}
 	for (auto r = mRings.begin(); r != mRings.end();)
 	{
@@ -178,11 +173,11 @@ void AR_DisplaceApp::draw()
 
 void AR_DisplaceApp::setupGUI()
 {
-	mParamBlurSizeU = 1.0f;
-	mParamBlurSizeV = 1.0f;
-	mParamBlurStrength = 1.0f;
-	mParamDisplaceAmt = 0.025f;
-	mParamDepthMax = 1000.0f;
+	mParamBlurSizeU = 1.5f;
+	mParamBlurSizeV = 2.2f;
+	mParamBlurStrength = 3.5f;
+	mParamDisplaceAmt = 0.5f;
+	mParamDepthMax = 1500.0f;
 	mParamErrorTerm = 32768.0f;
 
 	mGUI = params::InterfaceGl::create("Params", ivec2(300, 200));
@@ -214,10 +209,10 @@ void AR_DisplaceApp::setupShaders()
 
 void AR_DisplaceApp::setupFBO()
 {
-	mRawFbo = gl::Fbo::create(960, 540,gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA)));
-	mBlurHFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().dataType(GL_FLOAT).internalFormat(GL_RGBA32F)));
-	mBlurVFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().dataType(GL_FLOAT).internalFormat(GL_RGBA32F)));
-	mCompFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGBA)));
+	mRawFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().dataType(GL_FLOAT).internalFormat(GL_RGBA32F)));
+	mBlurHFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGB)));
+	mBlurVFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGB)));
+	mCompFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGB)));
 	mDepthFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().internalFormat(GL_RGB)));
 }
 

@@ -18,18 +18,3 @@ void main()
 	
 	FragColor = colorSample+bloomSample;
 }
-
-/*
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
-{
-    float uDisplacementAmount = (iMouse.x / iResolution.x - 0.5);
-    vec2 uvs = fragCoord.xy/iResolution.xy;
-    vec4 depthSample = texture2D(iChannel1,uvs);
-    
-    vec2 imageCenter = iResolution.xy*0.5;
-    vec2 distFromCenter = normalize(fragCoord.xy-imageCenter);
-    
-    vec2 normDist = distFromCenter/(iResolution.xy*0.5);
-    
-    fragColor = texture2D(iChannel0, uvs+ vec2(disp.b*(amt*distFromCenter)));
-}*/
