@@ -100,8 +100,13 @@
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\assets\shaders\blur_frag.glsl" />
+    <None Include="..\assets\shaders\blur_vert.glsl" />
+    <None Include="..\assets\shaders\comp_frag.glsl" />
     <None Include="..\assets\shaders\glass_ball_frag.glsl" />
     <None Include="..\assets\shaders\glass_ball_vert.glsl" />
+    <None Include="..\assets\shaders\highpass_frag.glsl" />
+    <None Include="..\assets\shaders\passthru_vert.glsl" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
