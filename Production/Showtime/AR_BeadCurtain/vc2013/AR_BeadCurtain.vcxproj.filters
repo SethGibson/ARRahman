@@ -16,6 +16,12 @@
     <Filter Include="Source Files\shaders">
       <UniqueIdentifier>{97ba7c6c-4084-4543-abef-1de819c33ae5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\blocks">
+      <UniqueIdentifier>{adcbd854-277f-4c77-9469-e4479b5bb369}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\blocks\Cinder-DSAPI">
+      <UniqueIdentifier>{39c826e8-cbbb-4796-a04f-711af849213c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\AR_BeadCurtainApp.cpp">
@@ -30,6 +36,9 @@
     <ClCompile Include="..\src\Bead.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\blocks\Cinder-DSAPI\src\CiDSAPI.cpp">
+      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Resources.h">
@@ -37,6 +46,9 @@
     </ClInclude>
     <ClInclude Include="..\src\Bead.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\blocks\Cinder-DSAPI\src\CiDSAPI.h">
+      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

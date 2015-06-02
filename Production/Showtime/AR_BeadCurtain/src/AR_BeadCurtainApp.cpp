@@ -1,3 +1,8 @@
+#ifdef _DEBUG
+#pragma comment(lib, "DSAPI.dbg.lib")
+#else
+#pragma comment(lib, "DSAPI.lib")
+#endif
 #include "cinder/app/App.h"
 #include "cinder/app/RendererGl.h"
 #include "cinder/Camera.h"
@@ -10,10 +15,12 @@
 #include "cinder/gl/Texture.h"
 #include "cinder/params/Params.h"
 #include "cinder/Rand.h"
+#include "Cinder-DSAPI/src/CiDSAPI.h"
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
+using namespace CinderDS;
 
 static ivec2 S_WINDOW_SIZE(960, 540);
 static int S_ROW_STEP = 30;
@@ -36,9 +43,10 @@ public:
 		Bead(){}
 		Bead(vec3 pPos, vec2 pIPos) :Position(pPos), Position2d(pIPos)
 		{
-			Life = randInt(90, 180);
+			Life = randInt(30, 90);
 			Age = Life;
-			EmissiveColor = Color(Color8u(255, 140, 64));
+			//EmissiveColor = Color(Color8u(255, 140, 64));
+			EmissiveColor = Color(Color8u(64, 160, 192));
 			ActiveColor = Color::black();
 			Radius = randFloat(0.2f, 1.0f);
 			Active = false;
@@ -54,6 +62,7 @@ public:
 			else if (Active&&Age == 0)
 			{
 				Active = false;
+				Life = randInt(30, 90);
 				Age = Life;
 				ActiveColor = Color::black();
 			}
@@ -62,9 +71,12 @@ public:
 	void setup() override;
 	void update() override;
 	void draw() override;
+	void cleanup() override;
 
 	void setupFBO();
 	void setupGUI();
+	void setupDS();
+	
 	void drawFBO();
 
 private:
@@ -100,6 +112,9 @@ private:
 							mParamBlurStrength,
 							mParamBlurSizeU,
 							mParamBlurSizeV;
+
+	CinderDSRef				mDS;
+	Channel16u				mDepthChan;
 };
 
 void AR_BeadCurtainApp::setup()
@@ -107,9 +122,10 @@ void AR_BeadCurtainApp::setup()
 	getWindow()->setSize(S_WINDOW_SIZE);
 	setupGUI();
 	setupFBO();
+	setupDS();
 
 	//setup shader
-	mEnvMap = gl::TextureCubeMap::create(loadImage(loadAsset("textures/skybox.png")));
+	mEnvMap = gl::TextureCubeMap::create(loadImage(loadAsset("textures/nightskybox.png")));
 	mShader = gl::GlslProg::create(loadAsset("shaders/glass_ball_vert.glsl"), loadAsset("shaders/glass_ball_frag.glsl"));
 
 	//setup geo
@@ -122,7 +138,7 @@ void AR_BeadCurtainApp::setup()
 		{
 			float px = lmap<float>(dx, 0.0f, static_cast<float>(S_WINDOW_SIZE.x-S_COL_STEP), -1.7778f, 1.7778f);
 			mBeads.push_back(Bead( vec3(static_cast<float>(px), static_cast<float>(py), 0.0f),
-										vec2(px*mScale.x, py*mScale.y )
+										vec2(dx*mScale.x, dy*mScale.y )
 										));
 		}
 	}
@@ -156,11 +172,6 @@ void AR_BeadCurtainApp::setupFBO()
 	mBlurVFbo = gl::Fbo::create(960, 540);
 	mCompFbo = gl::Fbo::create(960, 540);
 
-	//mHiPassFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().dataType(GL_FLOAT).internalFormat(GL_RGBA32F)));
-	//mBlurUFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().dataType(GL_FLOAT).internalFormat(GL_RGBA32F)));
-	//mBlurVFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().dataType(GL_FLOAT).internalFormat(GL_RGBA32F)));
-	//mCompFbo = gl::Fbo::create(960, 540, gl::Fbo::Format().colorTexture(gl::Texture2d::Format().dataType(GL_FLOAT).internalFormat(GL_RGBA32F)));
-
 	mHiPassShader = gl::GlslProg::create(loadAsset("shaders/passthru_vert.glsl"), loadAsset("shaders/highpass_frag.glsl"));
 	mHiPassShader->uniform("uTextureSampler", 0);
 
@@ -178,9 +189,9 @@ void AR_BeadCurtainApp::setupGUI()
 	mParamWhiteMid = 0.25f;
 	mParamWhiteThresh = 0.35f;
 	
-	mParamBlurSizeU = 1.0f;
-	mParamBlurSizeV = 1.0f;
-	mParamBlurStrength = 1.0f;
+	mParamBlurSizeU = 1.5f;
+	mParamBlurSizeV = 3.0f;
+	mParamBlurStrength = 2.5f;
 
 	mGUI = params::InterfaceGl::create("Params", vec2(300, 200));
 	mGUI->addParam<float>("paramWhiteMax", &mParamWhiteMax).optionsStr("label = 'Luminance'");
@@ -191,25 +202,37 @@ void AR_BeadCurtainApp::setupGUI()
 	mGUI->addParam<float>("paramBlurStrength", &mParamBlurStrength).optionsStr("label = 'Blur Strength'");
 }
 
+void AR_BeadCurtainApp::setupDS()
+{
+	mDS = CinderDSAPI::create();
+	mDS->init();
+	mDS->initDepth(FrameSize::DEPTHSD, 60);
+	mDS->start();
+
+	mDepthChan = Channel16u(480, 360);
+}
+
 void AR_BeadCurtainApp::update()
 {
 	float eyeX = 0.2f*math<float>::sin(getElapsedFrames()*0.004f);
 	float eyeY = 0.2f*math<float>::cos(getElapsedFrames()*0.004f);
 	mCamera.lookAt(vec3(eyeX, eyeY, -2.25f), vec3(0), vec3(0, 1, 0));
-
+	
+	mDS->update();
+	mDepthChan = mDS->getDepthFrame();
 
 	//DEBUG!!
-	int id = randInt(0, mBeads.size());
-	int current = 0;
 	for (auto b = mBeads.begin(); b != mBeads.end();++b)
 	{
-		if (id == current)
+		vec2 pos = b->Position2d;
+		pos.y = 360 - pos.y;
+		float v = (float)mDepthChan.getValue(pos);
+		if (v>100&&v<1500)
 		{
 			if (!b->Active)
 				b->Active = true;
 		}
 		b->Step(getElapsedFrames());
-		current++;
 	}
 
 	mPositions->bufferData(mBeads.size()*sizeof(Bead), mBeads.data(), GL_DYNAMIC_DRAW);
@@ -231,6 +254,11 @@ void AR_BeadCurtainApp::draw()
 	mRawFbo->unbindTexture(0);
 	
 	mGUI->draw();
+}
+
+void AR_BeadCurtainApp::cleanup()
+{
+	mDS->stop();
 }
 
 void AR_BeadCurtainApp::drawFBO()
