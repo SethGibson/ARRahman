@@ -76,6 +76,7 @@ public:
 	};
 
 	void setup() override;
+	void keyDown(KeyEvent pEvent) override;
 	void update() override;
 	void draw() override;
 	void cleanup() override;
@@ -103,6 +104,7 @@ private:
 					mCompFbo;
 
 	params::InterfaceGlRef mGUI;
+	bool					mDrawGUI;
 	float					mParamBlurStrength,
 							mParamBlurSizeU,
 							mParamBlurSizeV,
@@ -139,6 +141,12 @@ void AR_DisplaceApp::setup()
 
 }
 
+void AR_DisplaceApp::keyDown(KeyEvent pEvent)
+{
+	if (pEvent.getChar() == 'd')
+		mDrawGUI = !mDrawGUI;
+}
+
 void AR_DisplaceApp::update()
 {
 	if (mRings.size() < S_MAX_RINGS)
@@ -168,16 +176,19 @@ void AR_DisplaceApp::draw()
 	gl::translate(vec3(-960, 0, 0));
 	gl::draw(mCompFbo->getColorTexture(), vec2(0));
 	gl::popMatrices();
-	mGUI->draw();
+
+	if (mDrawGUI)
+		mGUI->draw();
 }
 
 void AR_DisplaceApp::setupGUI()
 {
+	mDrawGUI = false;
 	mParamBlurSizeU = 1.5f;
-	mParamBlurSizeV = 2.2f;
-	mParamBlurStrength = 3.5f;
-	mParamDisplaceAmt = 0.5f;
-	mParamDepthMax = 1500.0f;
+	mParamBlurSizeV = 3.0f;
+	mParamBlurStrength = 3.f;
+	mParamDisplaceAmt = 0.25f;
+	mParamDepthMax = 1200.0f;
 	mParamErrorTerm = 32768.0f;
 
 	mGUI = params::InterfaceGl::create("Params", ivec2(300, 200));
