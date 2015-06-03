@@ -9,8 +9,9 @@ out vec4 FragColor;
 
 void main()
 {
-	vec4 depthSample = texture(uTextureSamplerRgb, UV);
 	vec4 maskSample = texture(uTextureSamplerMask, UV);
+	vec4 depthSample = texture(uTextureSamplerRgb, vec2(1.0-(UV.x+maskSample.r*0.1),UV.y+(maskSample.r*0.1)));
+	
 	
 	vec3 colorTerm = depthSample.rgb*uRgbScale*maskSample.r;
 

@@ -116,6 +116,7 @@
     <None Include="..\assets\shaders\cloud_frag.glsl" />
     <None Include="..\assets\shaders\cloud_vert.glsl" />
     <None Include="..\assets\shaders\comp_frag.glsl" />
+    <None Include="..\assets\shaders\gray_frag.glsl" />
     <None Include="..\assets\shaders\particle_frag.glsl" />
     <None Include="..\assets\shaders\particle_vert.glsl" />
     <None Include="..\assets\shaders\passthru_vert.glsl" />

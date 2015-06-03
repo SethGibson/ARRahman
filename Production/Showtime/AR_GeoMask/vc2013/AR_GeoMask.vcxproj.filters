@@ -69,5 +69,8 @@
     <None Include="..\assets\shaders\cloud_vert.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
+    <None Include="..\assets\shaders\gray_frag.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

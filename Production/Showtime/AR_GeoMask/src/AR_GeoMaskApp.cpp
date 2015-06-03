@@ -23,7 +23,7 @@ using namespace std;
 using namespace CinderDS;
 
 //DEBUG
-static int S_NUM_HEDRONS = 100;
+static int S_NUM_HEDRONS = 25;
 static int S_SPAWN_COUNT = 2;
 static int S_SPAWN_TIME = 20;
 class AR_GeoMaskApp : public App
@@ -89,6 +89,7 @@ private:
 	gl::BatchRef		mCloudBatch;
 
 	gl::GlslProgRef		mShader;
+	gl::GlslProgRef		mShaderGray;
 	gl::GlslProgRef		mComposite;
 	gl::VboMeshRef		mMesh;
 	vector<HParticle>	mParticles;
@@ -110,7 +111,9 @@ private:
 	float					mParamDist,
 							mParamSinScale,
 							mParamFrameScale,
-							mParamRgbScale;
+							mParamRgbScale,
+							mParamDesaturation,
+							mParamBrightness;
 };
 
 void AR_GeoMaskApp::setup()
@@ -149,18 +152,26 @@ void AR_GeoMaskApp::setup()
 	mParticleFbo = gl::Fbo::create(960, 540, fboFormat);
 	mComposite = gl::GlslProg::create(loadAsset("shaders/passthru_vert.glsl"), loadAsset("shaders/comp_frag.glsl"));
 
+	mShaderGray = gl::GlslProg::create(loadAsset("shaders/passthru_vert.glsl"), loadAsset("shaders/gray_frag.glsl"));
+	mShaderGray->uniform("uTextureSampler", 0);
+
 	setupCloud();
 
 	//GUI
+	mParamDist =			750.0f;
+	mParamSinScale =		250.0f;
+	mParamFrameScale =		0.01f;
+	mParamRgbScale =		1.5f;
+	mParamDesaturation =	1.0f;
+	mParamBrightness =		0.25f;
+
 	mGUI = params::InterfaceGl::create("Params", ivec2(200, 300));
 	mGUI->addParam<float>("paramCamDist", &mParamDist).optionsStr("label='Camera Z'");
-	mGUI->addParam<float>("paramCamMOve", &mParamSinScale).optionsStr("label='Camera X'");
+	mGUI->addParam<float>("paramCamMove", &mParamSinScale).optionsStr("label='Camera X'");
 	mGUI->addParam<float>("paramTimeScale", &mParamFrameScale).optionsStr("label='Frame Scale'");
 	mGUI->addParam<float>("paramRgbScale", &mParamRgbScale).optionsStr("label='RGB Scale'");
-	mParamDist = 750.0f;
-	mParamSinScale = 250.0f;
-	mParamFrameScale = 0.01f;
-	mParamRgbScale = 1.0f;
+	mGUI->addParam<float>("paramDesaturation", &mParamDesaturation).optionsStr("label='Desaturation'");
+	mGUI->addParam<float>("paramBrightness", &mParamBrightness).optionsStr("label='Brightness'");
 }
 
 void AR_GeoMaskApp::setupCloud()
@@ -229,9 +240,6 @@ void AR_GeoMaskApp::update()
 	}
 
 	mInstances->bufferData(sizeof(HParticle)*mParticles.size(), mParticles.data(), GL_DYNAMIC_DRAW);
-	/*float cameraX = -15.0f*math<float>::cos((M_PI / 2) + getElapsedFrames()*0.001f);
-	float cameraZ = -15.0f*math<float>::sin((M_PI / 2)+getElapsedFrames()*0.001f);
-	mCamera.lookAt(vec3(cameraX, 0.0f, cameraZ), vec3(0), vec3(0, 1, 0));*/
 
 	updateDS();
 }
@@ -250,7 +258,7 @@ void AR_GeoMaskApp::updateDS()
 		for (int dx = 0; dx < 480; dx++)
 		{
 			float dz = depthFrame.getValue(ivec2(dx, dy));
-			if (dz > 100.0f && dz < 3000.0f)
+			if (dz > 100.0f && dz < 1500.0f)
 			{
 				vec3 worldPos = mDS->getDepthSpacePoint(vec3(dx, dy, dz));
 				vec2 uvs = mDS->getColorCoordsFromDepthSpace(worldPos);
@@ -272,16 +280,28 @@ void AR_GeoMaskApp::draw()
 {
 	drawParticles();
 	drawCloud();
-	// clear out the window with black
+
 	gl::clear( Color( 0, 0, 0 ) ); 
-	//gl::setMatrices(mCamera);
 	
 	gl::disableDepthRead();
 	gl::setMatricesWindow(getWindowSize());
 
 	gl::enableAlphaBlending();
-	gl::color(0.1f, 0.1f, 0.1f);
-	gl::draw(mCloudFbo->getColorTexture(), vec2(0));
+	gl::color(1.f, 1.f, 1.f);
+
+	gl::pushMatrices();
+	gl::translate(960, 0);
+	gl::scale(-1, 1, 1);
+	
+	mShaderGray->bind();
+	mShaderGray->uniform("uDesaturation", mParamDesaturation);
+	mShaderGray->uniform("uBrightness", mParamBrightness);
+	mCloudFbo->bindTexture(0);
+	gl::drawSolidRect(Rectf({ vec2(0), getWindowSize() }));
+	//gl::draw(mCloudFbo->getColorTexture(), vec2(0));
+	mCloudFbo->unbindTexture(0);
+	gl::popMatrices();
+	
 	mComposite->bind();
 	mComposite->uniform("uTextureSamplerRgb", 0);
 	mComposite->uniform("uTextureSamplerMask", 1);

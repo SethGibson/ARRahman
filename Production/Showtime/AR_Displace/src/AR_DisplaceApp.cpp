@@ -172,8 +172,9 @@ void AR_DisplaceApp::draw()
 	
 	gl::setMatricesWindow(getWindowSize());
 	gl::pushMatrices();
+	gl::translate(vec3(960, 0, 0));
 	gl::scale(vec3(-1, 1,1));
-	gl::translate(vec3(-960, 0, 0));
+
 	gl::draw(mCompFbo->getColorTexture(), vec2(0));
 	gl::popMatrices();
 
