@@ -23,8 +23,8 @@ using namespace std;
 using namespace CinderDS;
 
 static ivec2 S_WINDOW_SIZE(960, 540);
-static int S_ROW_STEP = 30;
-static int S_COL_STEP = 40;
+static int S_ROW_STEP = 20;
+static int S_COL_STEP = 30;
 
 class AR_BeadCurtainApp : public App
 {
@@ -48,7 +48,7 @@ public:
 			//EmissiveColor = Color(Color8u(255, 140, 64));
 			EmissiveColor = Color(Color8u(64, 160, 192));
 			ActiveColor = Color::black();
-			Radius = randFloat(0.2f, 1.0f);
+			Radius = randFloat(0.35f, 1.0f);
 			Active = false;
 		}
 
@@ -72,6 +72,7 @@ public:
 	void update() override;
 	void draw() override;
 	void cleanup() override;
+	void keyDown(KeyEvent pEvent) override;
 
 	void setupFBO();
 	void setupGUI();
@@ -106,12 +107,15 @@ private:
 	vector<Bead>			mActiveBeads;
 
 	params::InterfaceGlRef	mGUI;
+	bool					mDrawGUI;
 	float					mParamWhiteMax,
 							mParamWhiteMid,
 							mParamWhiteThresh,
 							mParamBlurStrength,
 							mParamBlurSizeU,
-							mParamBlurSizeV;
+							mParamBlurSizeV,
+							mParamCameraSpeed,
+							mParamCameraScale;
 
 	CinderDSRef				mDS;
 	Channel16u				mDepthChan;
@@ -143,7 +147,7 @@ void AR_BeadCurtainApp::setup()
 		}
 	}
 
-	mBallMesh = gl::VboMesh::create(geom::Sphere().radius(0.05f));
+	mBallMesh = gl::VboMesh::create(geom::Sphere().radius(0.035f));
 	geom::BufferLayout attribs;
 
 	mPositions = gl::Vbo::create(GL_ARRAY_BUFFER, mBeads, GL_DYNAMIC_DRAW);
@@ -162,6 +166,12 @@ void AR_BeadCurtainApp::setup()
 	
 	gl::enableDepthRead();
 	gl::enableDepthWrite();
+}
+
+void AR_BeadCurtainApp::keyDown(KeyEvent pEvent)
+{
+	if (pEvent.getChar() == 'd')
+		mDrawGUI = !mDrawGUI;
 }
 
 void AR_BeadCurtainApp::setupFBO()
@@ -185,13 +195,17 @@ void AR_BeadCurtainApp::setupFBO()
 
 void AR_BeadCurtainApp::setupGUI()
 {
-	mParamWhiteMax = 1.1f;
-	mParamWhiteMid = 0.25f;
+	mDrawGUI = false;
+	mParamWhiteMax =	1.1f;
+	mParamWhiteMid =	0.25f;
 	mParamWhiteThresh = 0.35f;
 	
-	mParamBlurSizeU = 1.5f;
-	mParamBlurSizeV = 3.0f;
+	mParamBlurSizeU =	1.5f;
+	mParamBlurSizeV =	3.0f;
 	mParamBlurStrength = 2.5f;
+
+	mParamCameraScale =	0.25f;
+	mParamCameraSpeed = 0.005f;
 
 	mGUI = params::InterfaceGl::create("Params", vec2(300, 200));
 	mGUI->addParam<float>("paramWhiteMax", &mParamWhiteMax).optionsStr("label = 'Luminance'");
@@ -200,6 +214,8 @@ void AR_BeadCurtainApp::setupGUI()
 	mGUI->addParam<float>("paramBlurSizeU", &mParamBlurSizeU).optionsStr("label = 'Blur Width'");
 	mGUI->addParam<float>("paramBlurSizeV", &mParamBlurSizeV).optionsStr("label = 'Blur Height'");
 	mGUI->addParam<float>("paramBlurStrength", &mParamBlurStrength).optionsStr("label = 'Blur Strength'");
+	mGUI->addParam<float>("paramBlurCameraSpeed", &mParamCameraSpeed).optionsStr("label = 'Camera Speed'");
+	mGUI->addParam<float>("paramBlurCameraScale", &mParamCameraScale).optionsStr("label = 'Camera Scale'");
 }
 
 void AR_BeadCurtainApp::setupDS()
@@ -214,8 +230,8 @@ void AR_BeadCurtainApp::setupDS()
 
 void AR_BeadCurtainApp::update()
 {
-	float eyeX = 0.2f*math<float>::sin(getElapsedFrames()*0.004f);
-	float eyeY = 0.2f*math<float>::cos(getElapsedFrames()*0.004f);
+	float eyeX = mParamCameraScale*math<float>::sin(getElapsedFrames()*mParamCameraSpeed);
+	float eyeY = mParamCameraScale*math<float>::cos(getElapsedFrames()*mParamCameraSpeed);
 	mCamera.lookAt(vec3(eyeX, eyeY, -2.25f), vec3(0), vec3(0, 1, 0));
 	
 	mDS->update();
@@ -253,7 +269,8 @@ void AR_BeadCurtainApp::draw()
 	mBlurVFbo->unbindTexture(1);
 	mRawFbo->unbindTexture(0);
 	
-	mGUI->draw();
+	if (mDrawGUI)
+		mGUI->draw();
 }
 
 void AR_BeadCurtainApp::cleanup()
