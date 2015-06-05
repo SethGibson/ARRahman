@@ -160,10 +160,10 @@ void AR_GeoMaskApp::setup()
 	//GUI
 	mParamDist =			750.0f;
 	mParamSinScale =		250.0f;
-	mParamFrameScale =		0.01f;
+	mParamFrameScale =		0.0025f;
 	mParamRgbScale =		1.5f;
 	mParamDesaturation =	1.0f;
-	mParamBrightness =		0.25f;
+	mParamBrightness =		0.3f;
 
 	mGUI = params::InterfaceGl::create("Params", ivec2(200, 300));
 	mGUI->addParam<float>("paramCamDist", &mParamDist).optionsStr("label='Camera Z'");
@@ -313,7 +313,7 @@ void AR_GeoMaskApp::draw()
 	mCloudFbo->unbindTexture();
 	gl::disableAlphaBlending();
 
-	mGUI->draw();
+	//mGUI->draw();
 }
 
 void AR_GeoMaskApp::drawParticles()

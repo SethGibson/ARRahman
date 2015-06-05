@@ -45,8 +45,8 @@ public:
 		{
 			Life = randInt(30, 90);
 			Age = Life;
-			//EmissiveColor = Color(Color8u(255, 140, 64));
-			EmissiveColor = Color(Color8u(64, 160, 192));
+			EmissiveColor = Color(Color8u(255, 140, 64));
+			//EmissiveColor = Color(Color8u(64, 160, 192));
 			ActiveColor = Color::black();
 			Radius = randFloat(0.35f, 1.0f);
 			Active = false;
@@ -129,7 +129,7 @@ void AR_BeadCurtainApp::setup()
 	setupDS();
 
 	//setup shader
-	mEnvMap = gl::TextureCubeMap::create(loadImage(loadAsset("textures/nightskybox.png")));
+	mEnvMap = gl::TextureCubeMap::create(loadImage(loadAsset("textures/skybox.png")));
 	mShader = gl::GlslProg::create(loadAsset("shaders/glass_ball_vert.glsl"), loadAsset("shaders/glass_ball_frag.glsl"));
 
 	//setup geo

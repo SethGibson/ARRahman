@@ -231,8 +231,8 @@ void RandomSpawn::drawParticles()
 {
 	mBatch_P->getGlslProg()->uniform("ViewDirection", mCamera.getViewDirection());
 	mBatch_P->getGlslProg()->uniform("LightPosition", vec3(0, 10, 0));
-	mBatch_P->getGlslProg()->uniform("SpecPow", 16.0f);
-	mBatch_P->getGlslProg()->uniform("SpecStr", 1.0f);
+	mBatch_P->getGlslProg()->uniform("SpecPow", 4.0f);
+	mBatch_P->getGlslProg()->uniform("SpecStr", 2.0f);
 
 	mBatch_P->drawInstanced(mPointsParticles.size());
 }
