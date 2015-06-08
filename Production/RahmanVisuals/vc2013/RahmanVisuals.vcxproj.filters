@@ -1,3 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -12,6 +13,36 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Source Files\shaders">
+      <UniqueIdentifier>{6af4e921-65f9-41b1-896e-0f3a90f7276f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shaders\_common">
+      <UniqueIdentifier>{bf41fb73-f567-4efe-92fe-7667743eb6c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shaders\beadcurtain">
+      <UniqueIdentifier>{942eeb6f-19ef-40dd-abfb-c5a2d36d4f60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shaders\displace">
+      <UniqueIdentifier>{7433bb99-b35b-4aba-8d35-285d37aa3d15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shaders\geomask">
+      <UniqueIdentifier>{531f81bc-cdc4-41ec-b1d2-f082cc4eda11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\blocks">
+      <UniqueIdentifier>{58b92cb9-89f8-4c6b-b4e5-0e02df57a393}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\blocks\Cinder-DSAPI">
+      <UniqueIdentifier>{54356a0a-fe78-4df2-964b-e9ecbba46206}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\beadcurtain">
+      <UniqueIdentifier>{0510207f-8d12-4f10-ab20-62baf25746b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\displace">
+      <UniqueIdentifier>{14c3adae-18c6-4e92-81b3-115d637ede3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\geomask">
+      <UniqueIdentifier>{f0cd9bd6-3d56-4f5b-933d-3abcd84e454c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\RahmanVisualsApp.cpp">
@@ -23,15 +54,83 @@
     <ClInclude Include="..\include\Resources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClCompile Include="..\blocks\Cinder-DSAPI\src\CiDSAPI.cpp">
+      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\beadcurtain\BeadCurtain.cpp">
+      <Filter>Source Files\beadcurtain</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\displace\Displace.cpp">
+      <Filter>Source Files\displace</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\geomask\GeoMask.cpp">
+      <Filter>Source Files\geomask</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\Resources.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\blocks\Cinder-DSAPI\src\CiDSAPI.h">
+      <Filter>Source Files\blocks\Cinder-DSAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\beadcurtain\BeadCurtain.h">
+      <Filter>Source Files\beadcurtain</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\displace\Displace.h">
+      <Filter>Source Files\displace</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\geomask\GeoMask.h">
+      <Filter>Source Files\geomask</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\RahmanVisualsApp.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resources.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\assets\shaders\_common\blur_frag.glsl">
+      <Filter>Source Files\shaders\_common</Filter>
+    </None>
+    <None Include="..\assets\shaders\_common\blur_vert.glsl">
+      <Filter>Source Files\shaders\_common</Filter>
+    </None>
+    <None Include="..\assets\shaders\_common\highpass_frag.glsl">
+      <Filter>Source Files\shaders\_common</Filter>
+    </None>
+    <None Include="..\assets\shaders\_common\passthru_vert.glsl">
+      <Filter>Source Files\shaders\_common</Filter>
+    </None>
+    <None Include="..\assets\shaders\beadcurtain\glass_ball_frag.glsl">
+      <Filter>Source Files\shaders\beadcurtain</Filter>
+    </None>
+    <None Include="..\assets\shaders\beadcurtain\glass_ball_vert.glsl">
+      <Filter>Source Files\shaders\beadcurtain</Filter>
+    </None>
+    <None Include="..\assets\shaders\displace\torus_frag.glsl">
+      <Filter>Source Files\shaders\displace</Filter>
+    </None>
+    <None Include="..\assets\shaders\displace\torus_vert.glsl">
+      <Filter>Source Files\shaders\displace</Filter>
+    </None>
+    <None Include="..\assets\shaders\geomask\cloud_frag.glsl">
+      <Filter>Source Files\shaders\geomask</Filter>
+    </None>
+    <None Include="..\assets\shaders\geomask\cloud_vert.glsl">
+      <Filter>Source Files\shaders\geomask</Filter>
+    </None>
+    <None Include="..\assets\shaders\geomask\gray_frag.glsl">
+      <Filter>Source Files\shaders\geomask</Filter>
+    </None>
+    <None Include="..\assets\shaders\geomask\particle_frag.glsl">
+      <Filter>Source Files\shaders\geomask</Filter>
+    </None>
+    <None Include="..\assets\shaders\geomask\particle_vert.glsl">
+      <Filter>Source Files\shaders\geomask</Filter>
+    </None>
   </ItemGroup>
 </Project>

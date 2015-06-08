@@ -1,3 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -45,7 +46,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\include;"..\..\..\..\..\..\libs\Cinder\include"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\blocks;..\src;..\include;$(CINDER_ROOT)\include;$(DSROOT)\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;NOMINMAX;_WIN32_WINNT=0x0502;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -59,7 +60,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>cinder-$(PlatformToolset)_d.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>"..\..\..\..\..\..\libs\Cinder\lib\msw\$(PlatformTarget)"</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CINDER_ROOT)\lib\msw\$(PlatformTarget);$(DSROOT)\Lib</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
@@ -69,7 +70,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\include;"..\..\..\..\..\..\libs\Cinder\include"</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\blocks;..\src;..\include;$(CINDER_ROOT)\include;$(DSROOT)\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;NOMINMAX;_WIN32_WINNT=0x0502;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
@@ -85,7 +86,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>cinder-$(PlatformToolset).lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>"..\..\..\..\..\..\libs\Cinder\lib\msw\$(PlatformTarget)"</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CINDER_ROOT)\lib\msw\$(PlatformTarget);$(DSROOT)\Lib</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <SubSystem>Windows</SubSystem>
@@ -98,13 +99,36 @@
   <ItemGroup>
     <ResourceCompile Include="Resources.rc" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="..\assets\shaders\beadcurtain\glass_ball_frag.glsl" />
+    <None Include="..\assets\shaders\beadcurtain\glass_ball_vert.glsl" />
+    <None Include="..\assets\shaders\displace\torus_frag.glsl" />
+    <None Include="..\assets\shaders\displace\torus_vert.glsl" />
+    <None Include="..\assets\shaders\geomask\cloud_frag.glsl" />
+    <None Include="..\assets\shaders\geomask\cloud_vert.glsl" />
+    <None Include="..\assets\shaders\geomask\gray_frag.glsl" />
+    <None Include="..\assets\shaders\geomask\particle_frag.glsl" />
+    <None Include="..\assets\shaders\geomask\particle_vert.glsl" />
+    <None Include="..\assets\shaders\_common\blur_frag.glsl" />
+    <None Include="..\assets\shaders\_common\blur_vert.glsl" />
+    <None Include="..\assets\shaders\_common\highpass_frag.glsl" />
+    <None Include="..\assets\shaders\_common\passthru_vert.glsl" />
+  </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <ClCompile Include="..\blocks\Cinder-DSAPI\src\CiDSAPI.cpp" />
+    <ClCompile Include="..\src\beadcurtain\BeadCurtain.cpp" />
+    <ClCompile Include="..\src\displace\Displace.cpp" />
+    <ClCompile Include="..\src\geomask\GeoMask.cpp" />
     <ClCompile Include="..\src\RahmanVisualsApp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\blocks\Cinder-DSAPI\src\CiDSAPI.h" />
     <ClInclude Include="..\include\Resources.h" />
+    <ClInclude Include="..\src\beadcurtain\BeadCurtain.h" />
+    <ClInclude Include="..\src\displace\Displace.h" />
+    <ClInclude Include="..\src\geomask\GeoMask.h" />
+    <ClInclude Include="..\src\RahmanVisualsApp.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

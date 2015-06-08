@@ -237,7 +237,6 @@ void AR_BeadCurtainApp::update()
 	mDS->update();
 	mDepthChan = mDS->getDepthFrame();
 
-	//DEBUG!!
 	for (auto b = mBeads.begin(); b != mBeads.end();++b)
 	{
 		vec2 pos = b->Position2d;

@@ -1,34 +1,47 @@
-#include "cinder/app/App.h"
-#include "cinder/app/RendererGl.h"
-#include "cinder/gl/gl.h"
+#include "RahmanVisualsApp.h"
 
-using namespace ci;
-using namespace ci::app;
-using namespace std;
+void AppFrame::setup()
+{
+	mBeadCurtain = BeadCurtain::create();
+	mDisplace = Displace::create();
+	mGeoMask = GeoMask::create();
 
-class RahmanVisualsApp : public App {
-  public:
-	void setup() override;
-	void mouseDown( MouseEvent event ) override;
-	void update() override;
-	void draw() override;
-};
+	mBeadCurtain->Init(this);
+	mDisplace->Init(this);
+}
 
-void RahmanVisualsApp::setup()
+void AppFrame::mouseDown( MouseEvent event )
 {
 }
 
-void RahmanVisualsApp::mouseDown( MouseEvent event )
+void AppFrame::update()
 {
+	switch (mMode)
+	{
+	case 0:
+		mBeadCurtain->Update(mDepth);
+		break;
+	case 1:
+		mDisplace->Update(mDepth);
+		break;
+	case 2:
+		mGeoMask->Update();
+	}
 }
 
-void RahmanVisualsApp::update()
+void AppFrame::draw()
 {
+	switch (mMode)
+	{
+	case 0:
+		mBeadCurtain->Draw();
+		break;
+	case 1:
+		mDisplace->Draw();
+		break;
+	case 2:
+		mGeoMask->Draw();
+	}
 }
 
-void RahmanVisualsApp::draw()
-{
-	gl::clear( Color( 0, 0, 0 ) ); 
-}
-
-CINDER_APP( RahmanVisualsApp, RendererGl )
+CINDER_APP( AppFrame, RendererGl )
